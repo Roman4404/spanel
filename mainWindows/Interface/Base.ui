@@ -239,10 +239,10 @@
      <widget class="QWidget" name="verticalLayoutWidget_3">
       <property name="geometry">
        <rect>
-        <x>210</x>
+        <x>200</x>
         <y>40</y>
-        <width>491</width>
-        <height>491</height>
+        <width>511</width>
+        <height>501</height>
        </rect>
       </property>
       <layout class="QVBoxLayout" name="verticalLayout_3">
@@ -255,6 +255,9 @@
        <property name="topMargin">
         <number>0</number>
        </property>
+       <item>
+        <widget class="QListView" name="listView"/>
+       </item>
       </layout>
      </widget>
      <widget class="QWidget" name="verticalLayoutWidget_4">
