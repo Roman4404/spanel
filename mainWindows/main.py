@@ -24,6 +24,7 @@ class Interface(QMainWindow): #Интерфейс
         self.names_sound = []
         if not os.path.isfile("./date/songs_info.csv"):
             self.start_program()
+        self.update_sound_table('./date/songs_info.csv')
 
 
     def start_program(self):
@@ -51,25 +52,28 @@ class Interface(QMainWindow): #Интерфейс
                 writer = csv.writer(
                     f, delimiter=';', quotechar='"', quoting=csv.QUOTE_MINIMAL)
                 writer.writerow(new_song_final)
-            self.update_song()
+            self.update_sound_table('./date/songs_info.csv')
         except AddSoundError as s:
             print(s)
 
-    def update_song(self):
-        with open('./date/songs_info.csv', encoding="utf8") as f:
-            reader = csv.reader(f, delimiter=';', quotechar='"')
+    def update_sound_table(self, table_name):
+        with open(table_name, encoding="utf8") as csvfile:
+            reader = csv.reader(csvfile, delimiter=';', quotechar='"')
             title = next(reader)
-            self.tableView.setColumnCount(len(title))
-            self.tableView.setHorizontalHeaderLabels(title)
-            self.tableView.setRowCount(0)
+            self.tableWidget.setColumnCount(len(title))
+            self.tableWidget.setColumnWidth(0, 50)
+            self.tableWidget.setColumnWidth(1, 90)
+            self.tableWidget.setColumnWidth(2, 2500)
+            self.tableWidget.setColumnWidth(3, 90)
+            self.tableWidget.setHorizontalHeaderLabels(title)
+            self.tableWidget.setRowCount(0)
             for i, row in enumerate(reader):
-                self.tableView.setRowCount(
-                    self.tableView.rowCount() + 1)
+                self.tableWidget.setRowCount(
+                    self.tableWidget.rowCount() + 1)
                 for j, elem in enumerate(row):
-                    self.tableView.setItem(
+                    self.tableWidget.setItem(
                         i, j, QTableWidgetItem(elem))
-        self.tableView.resizeColumnsToContents()
-
+        self.tableWidget.resizeColumnsToContents()
 
 if __name__ == '__main__':
     app = QApplication(sys.argv)

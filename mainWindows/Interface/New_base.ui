@@ -75,7 +75,7 @@
        <string>+</string>
       </property>
      </widget>
-     <widget class="QTableView" name="tableView">
+     <widget class="QTableWidget" name="tableWidget">
       <property name="geometry">
        <rect>
         <x>0</x>
@@ -85,7 +85,7 @@
        </rect>
       </property>
      </widget>
-     <zorder>tableView</zorder>
+     <zorder>tableWidget</zorder>
      <zorder>add_button</zorder>
     </widget>
     <widget class="QWidget" name="tab_2">
