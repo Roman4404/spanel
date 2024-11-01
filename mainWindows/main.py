@@ -61,10 +61,6 @@ class Interface(QMainWindow): #Интерфейс
             reader = csv.reader(csvfile, delimiter=';', quotechar='"')
             title = next(reader)
             self.tableWidget.setColumnCount(len(title))
-            self.tableWidget.setColumnWidth(0, 50)
-            self.tableWidget.setColumnWidth(1, 90)
-            self.tableWidget.setColumnWidth(2, 2500)
-            self.tableWidget.setColumnWidth(3, 90)
             self.tableWidget.setHorizontalHeaderLabels(title)
             self.tableWidget.setRowCount(0)
             for i, row in enumerate(reader):
@@ -74,6 +70,11 @@ class Interface(QMainWindow): #Интерфейс
                     self.tableWidget.setItem(
                         i, j, QTableWidgetItem(elem))
         self.tableWidget.resizeColumnsToContents()
+        self.tableWidget.setColumnWidth(0, 0)
+        self.tableWidget.setColumnWidth(1, 150)
+        self.tableWidget.setColumnWidth(2, 540)
+        self.tableWidget.setColumnWidth(3, 90)
+
 
 if __name__ == '__main__':
     app = QApplication(sys.argv)
