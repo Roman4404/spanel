@@ -3,11 +3,13 @@ import io
 import os
 import csv
 import shutil
+from tinytag import TinyTag
 
 
 from PyQt6 import uic  # Импортируем uic
 from PyQt6.QtWidgets import QApplication, QMainWindow, QFileDialog, QTableWidgetItem, QDialog
 from PyQt6.QtWidgets import QPushButton, QLabel
+
 
 class AddSoundError(Exception):
     pass
@@ -36,7 +38,10 @@ class WorkToSoundFile:
         else:
             last_id = int(read_song_sort[-1]['id'])
         songs_file.close()
-        new_song_final = [last_id + 1, 'ALT+F4', name_sound, 'error', file_name]
+        sound_file = TinyTag.get(file_name)
+        len_sound_file = sound_file.duration
+
+        new_song_final = [last_id + 1, 'ALT+F4', name_sound, f'{int(len_sound_file // 60)}:{int(len_sound_file % 60)}', file_name]
         with open('./date/songs_info.csv', 'a', newline='', encoding="utf8") as f:
             writer = csv.writer(
                 f, delimiter=';', quotechar='"', quoting=csv.QUOTE_MINIMAL)
@@ -63,7 +68,7 @@ class Interface(QMainWindow): #Интерфейс
             file_name = QFileDialog.getOpenFileName(self, 'Выбрать картинку', '')[0]
             if file_name == '':
                 raise FileAddError('')
-            elif file_name[-4:] != '.mp3':
+            elif file_name[-4:] != '.mp3' and file_name[-4:] != '.m4a' and file_name[-4:] != '.wav':
                 raise FileAddError('Выбран не подерживающися формат')
             et = FinalDialogWindowAddSound(file_name)
             et.show()
@@ -101,6 +106,7 @@ class FinalDialogWindowAddSound(QDialog):
         self.file_name = file_name
         self.name_sound_lineEdit.setText(str(file_name))
         self.ok_pushButton.clicked.connect(self.run)
+        self.file_select_other_pushButton.clicked.connect(self.other_file)
 
 
     def run(self):
@@ -111,8 +117,16 @@ class FinalDialogWindowAddSound(QDialog):
         self.close()
 
     def other_file(self):
-        Interface.add_sound()
-        self.close()
+        try:
+            file_name = QFileDialog.getOpenFileName(self, 'Выбрать картинку', '')[0]
+            if file_name == '':
+                raise FileAddError('')
+            elif file_name[-4:] != '.mp3':
+                raise FileAddError('Выбран не подерживающися формат')
+            self.file_name = file_name
+            self.name_sound_lineEdit.setText(str(file_name))
+        except AddSoundError as s:
+            print(s)
 
 if __name__ == '__main__':
     app = QApplication(sys.argv)
