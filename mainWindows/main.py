@@ -13,11 +13,13 @@ import pyaudio
 import numpy as np
 import wave
 import time
+from PyQt6.QtCore import Qt
 
 
 from PyQt6 import uic  # Импортируем uic
 from PyQt6.QtWidgets import QApplication, QMainWindow, QFileDialog, QTableWidgetItem, QDialog
 from PyQt6.QtWidgets import QPushButton, QLabel
+from PyQt6.QtGui import QPixmap
 
 
 class AddSoundError(Exception):
@@ -31,6 +33,8 @@ class FileAddError(AddSoundError):
 class WorkToSoundFile:
     def __init__(self, file_name):
         self.file_name = file_name
+        global volume_value
+        global key
 
     def copy_file(self):
         name_f = self.file_name[self.file_name.rfind('/') + 1:]
@@ -49,14 +53,44 @@ class WorkToSoundFile:
         songs_file.close()
         sound_file = TinyTag.get(file_name)
         len_sound_file = sound_file.duration
-        t = WorkToOutputSoundInMicrophone(file_name)
-        t.run()
-
-        new_song_final = [last_id + 1, str(key).upper(), name_sound, f'{int(len_sound_file // 60)}:{int(len_sound_file % 60)}', file_name]
+        format_file = file_name[-4:]
+        new_song_final = [last_id + 1, str(key).upper(), name_sound, f'{int(len_sound_file // 60)}:{int(len_sound_file % 60)}', file_name, format_file]
+        hot_key = WorkToHotKey(key)
+        hot_key.add_hot_key_in_ram(file_name, format_file)
+        with open('./date/busy_hot_key.txt', 'a', newline='', encoding="utf8") as f:
+            print(key.upper(), file=f)
         with open('./date/songs_info.csv', 'a', newline='', encoding="utf8") as f:
             writer = csv.writer(
                 f, delimiter=';', quotechar='"', quoting=csv.QUOTE_MINIMAL)
             writer.writerow(new_song_final)
+
+
+class WorkToHotKey: #Государственный орган по отслеживанию деятельности горячих клавиш
+    def __init__(self, hot_key):
+        self.hot_key = hot_key
+
+    def check_hot_key_busy_lite(self):
+        with open('./date/busy_hot_key.txt', 'r', newline='', encoding="utf8") as f:
+            read_file = f.readlines()
+            for i in read_file:
+                if str(self.hot_key).upper() == i[:-1]:
+                    return True
+            return False
+
+
+    def add_hot_key_busy(self):
+        pass
+
+    def remove_old_hot_key_busy(self):
+        pass
+
+    def remove_hot_key_busy(self):
+        pass
+
+    def add_hot_key_in_ram(self, file_name, format_file):
+        t = WorkToOutputSoundInMicrophone(file_name, format_file)
+        kb.add_hotkey(str(' '.join(map(str, str(self.hot_key).split()))).lower(), lambda: t.run())
+
 
 class Interface(QMainWindow): #Интерфейс
     def __init__(self):
@@ -64,15 +98,42 @@ class Interface(QMainWindow): #Интерфейс
         uic.loadUi("./Interface/New_base.ui", self)
         self.add_button.clicked.connect(self.add_sound)
         self.names_sound = []
-        if not os.path.isfile("./date/songs_info.csv"):
-            self.start_program()
+        self.volume_up_icon_white = QPixmap('./Interface/image/volume_up_icon.png')
+        self.volume_icon_label.setPixmap(self.volume_up_icon_white)
+        if not os.path.isfile("./date/songs_info.csv") or not os.path.isfile('./date/settings_app.txt') or not os.path.isfile('./date/busy_hot_key.txt'):
+            self.start_program_create_files()
+        self.start_program('./date/songs_info.csv')
+        global volume_value
+        volume_value = self.valuts_volums_verticalSlider.value()
+        self.valuts_volums_verticalSlider.valueChanged.connect(self.update_volume_value)
         self.update_sound_table('./date/songs_info.csv')
 
 
-    def start_program(self):
-        create_songs_file = open('./date/songs_info.csv', 'w', newline='', encoding="utf8")
-        print('id;keyboards_key;song_name;run_song', file=create_songs_file)
-        create_songs_file.close()
+
+    def start_program_create_files(self):
+        with open('./date/songs_info.csv', 'w', newline='', encoding="utf8") as create_songs_file:
+            print('id;keyboards_key;song_name;run_song;file_name;format_file', file=create_songs_file)
+            create_songs_file.close()
+        with open('./date/settings_app.txt', 'w', newline='', encoding="utf8") as create_settings_file:
+            print('volume_value', file=create_settings_file)
+            print('99', file=create_settings_file)
+        create_settings_file.close()
+        with open('./date/busy_hot_key.txt', 'w', newline='', encoding="utf8") as f:
+            pass
+        self.valuts_volums_verticalSlider.setValue(99)
+
+
+    def start_program(self, table_name):
+        with open('./date/settings_app.txt', 'r', encoding="utf8") as f:
+            read_l = f.readlines()
+            volume_value = int(read_l[1][:-1])
+            self.valuts_volums_verticalSlider.setValue(volume_value)
+        with open(table_name, encoding="utf8") as csvfile:
+            reader = csv.DictReader(csvfile, delimiter=';', quotechar='"')
+            for song_info in list(reader):
+                hot_key = WorkToHotKey(song_info['keyboards_key'])
+                hot_key.add_hot_key_in_ram(song_info['file_name'], song_info['format_file'])
+
 
     def add_sound(self):
         try:
@@ -87,6 +148,10 @@ class Interface(QMainWindow): #Интерфейс
             self.update_sound_table('./date/songs_info.csv')
         except AddSoundError as s:
             print(s)
+
+    def update_volume_value(self):
+        global volume_value
+        volume_value = self.valuts_volums_verticalSlider.value()
 
     def update_sound_table(self, table_name):
         with open(table_name, encoding="utf8") as csvfile:
@@ -107,6 +172,13 @@ class Interface(QMainWindow): #Интерфейс
         self.tableWidget.setColumnWidth(2, 540)
         self.tableWidget.setColumnWidth(3, 90)
         self.tableWidget.setColumnWidth(4, 0)
+        self.tableWidget.setColumnWidth(5, 0)
+
+    def closeEvent(self, event):
+        with open('./date/settings_app.txt', 'w', newline='', encoding="utf8") as f:
+            print('volume_value', file=f)
+            print(self.valuts_volums_verticalSlider.value(), file=f)
+        event.accept()
 
 
 class FinalDialogWindowAddSound(QDialog):
@@ -120,6 +192,9 @@ class FinalDialogWindowAddSound(QDialog):
         self.file_select_other_pushButton.clicked.connect(self.other_file)
         self.cancel_pushButton.clicked.connect(self.stop)
         self.to_record_window_pushButton.clicked.connect(self.record_hot_key)
+        global volume_value
+        global key
+        key = ''
 
 
     def run(self):
@@ -161,14 +236,22 @@ class RecordHotKeyDialogWindow(QDialog):
         self.record_pushButton.clicked.connect(self.run)
         self.reset_pushButton.clicked.connect(self.other_hot_key)
         self.reset_pushButton.setEnabled(False)
+        self.ok_pushButton.setEnabled(False)
         self.ok_pushButton.clicked.connect(self.ok)
 
     def run(self):
         self.record_pushButton.hide()
         self.record_pushButton.setEnabled(False)
         self.key = kb.read_hotkey(suppress = False)
-        self.hot_key_view.setText(f'{str(self.key).upper()}')
-        self.reset_pushButton.setEnabled(True)
+        key_busy = WorkToHotKey(self.key)
+        if key_busy.check_hot_key_busy_lite():
+            self.hot_key_view.setText(f'Занята')
+            self.ok_pushButton.setEnabled(False)
+
+        else:
+            self.hot_key_view.setText(f'{str(self.key).upper()}')
+            self.reset_pushButton.setEnabled(True)
+            self.ok_pushButton.setEnabled(True)
 
     def stop(self):
         self.close()
@@ -187,11 +270,13 @@ class RecordHotKeyDialogWindow(QDialog):
 
 class WorkToOutputSoundInMicrophone:
 
-    def __init__(self, file_name):
+    def __init__(self, file_name, format_file):
         self.file_name = file_name
+        self.format_file = format_file
 
     def run(self):
-        data, samplerate = sf.read(self.file_name)
+        global volume_value
+        # data, samplerate = sf.read(self.file_name)
         # format = pyaudio.paInt16
         # channels = 1
         # rate = 44100
@@ -216,37 +301,34 @@ class WorkToOutputSoundInMicrophone:
         # stream_output.stop_stream()
         # stream_output.close()
         # p.terminate()
-        if len(self.file_name) < 2:
-            print(f'Plays a wave file. Usage: {self.file_name} filename.wav')
-            sys.exit(-1)
 
-        with wave.open(self.file_name, 'rb') as wf:
-            # Define callback for playback (1)
-            def callback(in_data, frame_count, time_info, status):
-                data = wf.readframes(frame_count)
-                # If len(data) is less than requested frame_count, PyAudio automatically
-                # assumes the stream is finished, and the stream stops.
-                return (data, pyaudio.paContinue)
+        if self.format_file == '.wav':
+            with wave.open(self.file_name, 'rb') as wf:
 
-            # Instantiate PyAudio and initialize PortAudio system resources (2)
-            p = pyaudio.PyAudio()
+                def callback(in_data, frame_count, time_info, status):
+                    data = wf.readframes(frame_count)
+                    audio_data = np.frombuffer(data, dtype=np.int16)
+                    self.volume_value = int(volume_value) / 100
+                    # Умножаем на коэффициент громкости (volume_scale)
+                    audio_data = (audio_data * self.volume_value).astype(np.int16)
 
-            # Open stream using callback (3)
-            stream = p.open(format=p.get_format_from_width(wf.getsampwidth()),
-                            channels=wf.getnchannels(),
-                            rate=wf.getframerate(),
-                            output=True,
-                            stream_callback=callback, output_device_index=42)
-            print(sd.query_devices())
-            # Wait for stream to finish (4)
-            while stream.is_active():
-                pass
+                    return (audio_data.tobytes(), pyaudio.paContinue)
 
-            # Close the stream (5)
-            stream.close()
+                p = pyaudio.PyAudio()
+                stream = p.open(format=p.get_format_from_width(wf.getsampwidth()),
+                                channels=wf.getnchannels(),
+                                rate=wf.getframerate(),
+                                output=True,
+                                stream_callback=callback, output_device_index=5)
 
-            # Release PortAudio system resources (6)
-            p.terminate()
+
+                print(sd.query_devices())
+
+                while stream.is_active():
+                    pass
+
+                stream.close()
+                p.terminate()
 
 if __name__ == '__main__':
     app = QApplication(sys.argv)
