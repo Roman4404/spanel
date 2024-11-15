@@ -1,6 +1,5 @@
 # -*- coding: utf-8 -*-
 import sys
-import argparse
 import io
 import os
 import csv
@@ -19,7 +18,7 @@ from PyQt6.QtCore import Qt
 from PyQt6 import uic  # Импортируем uic
 from PyQt6.QtWidgets import QApplication, QMainWindow, QFileDialog, QTableWidgetItem, QDialog
 from PyQt6.QtWidgets import QPushButton, QLabel
-from PyQt6.QtGui import QPixmap
+from PyQt6.QtGui import QPixmap, QIcon
 
 
 class AddSoundError(Exception):
@@ -91,15 +90,28 @@ class WorkToHotKey: #Государственный орган по отслеж
         t = WorkToOutputSoundInMicrophone(file_name, format_file)
         kb.add_hotkey(str(' '.join(map(str, str(self.hot_key).split()))).lower(), lambda: t.run())
 
+    def stop_valve_sound(self):
+        global res_volume_value
+        global volume_value
+        res_volume_value = 49
+        volume_value = 0
+
 
 class Interface(QMainWindow): #Интерфейс
     def __init__(self):
         super().__init__()
         uic.loadUi("./Interface/New_base.ui", self)
         self.add_button.clicked.connect(self.add_sound)
+        self.stop_pushButton.clicked.connect(self.stop_valve_sound)
         self.names_sound = []
-        self.volume_up_icon_white = QPixmap('./Interface/image/volume_up_icon.png')
-        self.volume_icon_label.setPixmap(self.volume_up_icon_white)
+        self.volume_up_icon = QPixmap('./Interface/image/volume_up_icon_white.png')
+        self.play_icon = QPixmap("./Interface/image/play_and_pause_icon_white.png")
+        self.play_pushButton.setIcon(QIcon(self.play_icon))
+        self.play_pushButton.setIconSize(self.play_icon.rect().size())
+        self.stop_icon = QPixmap('./Interface/image/stop_icon_white.png')
+        self.stop_pushButton.setIcon(QIcon(self.stop_icon))
+        self.stop_pushButton.setIconSize(self.stop_icon.rect().size())
+        self.volume_icon_label.setPixmap(self.volume_up_icon)
         if not os.path.isfile("./date/songs_info.csv") or not os.path.isfile('./date/settings_app.txt') or not os.path.isfile('./date/busy_hot_key.txt'):
             self.start_program_create_files()
         self.start_program('./date/songs_info.csv')
@@ -107,6 +119,10 @@ class Interface(QMainWindow): #Интерфейс
         volume_value = self.valuts_volums_verticalSlider.value()
         self.valuts_volums_verticalSlider.valueChanged.connect(self.update_volume_value)
         self.update_sound_table('./date/songs_info.csv')
+        self.stop_pushButton.clicked.connect(self.stop_valve_sound)
+        global stop_valve
+        stop_valve = 0
+        kb.add_hotkey('ctrl + f', lambda: WorkToHotKey('ctrl + f').stop_valve_sound())
 
 
 
@@ -153,6 +169,13 @@ class Interface(QMainWindow): #Интерфейс
         global volume_value
         volume_value = self.valuts_volums_verticalSlider.value()
 
+    def stop_valve_sound(self):
+        global res_volume_value
+        global volume_value
+        res_volume_value = self.valuts_volums_verticalSlider.value()
+        volume_value = -1
+
+
     def update_sound_table(self, table_name):
         with open(table_name, encoding="utf8") as csvfile:
             reader = csv.reader(csvfile, delimiter=';', quotechar='"')
@@ -176,7 +199,7 @@ class Interface(QMainWindow): #Интерфейс
 
     def closeEvent(self, event):
         with open('./date/settings_app.txt', 'w', newline='', encoding="utf8") as f:
-            print('volume_value', file=f)
+            print('1', file=f)
             print(self.valuts_volums_verticalSlider.value(), file=f)
         event.accept()
 
@@ -276,6 +299,9 @@ class WorkToOutputSoundInMicrophone:
 
     def run(self):
         global volume_value
+        global stop_valve
+        global res_volume_value
+        res_volume_value = volume_value
         # data, samplerate = sf.read(self.file_name)
         # format = pyaudio.paInt16
         # channels = 1
@@ -309,7 +335,9 @@ class WorkToOutputSoundInMicrophone:
                     data = wf.readframes(frame_count)
                     audio_data = np.frombuffer(data, dtype=np.int16)
                     self.volume_value = int(volume_value) / 100
-                    # Умножаем на коэффициент громкости (volume_scale)
+
+                    if self.volume_value == float(-0.01):
+                        stream.close()
                     audio_data = (audio_data * self.volume_value).astype(np.int16)
 
                     return (audio_data.tobytes(), pyaudio.paContinue)
@@ -323,12 +351,15 @@ class WorkToOutputSoundInMicrophone:
 
 
                 print(sd.query_devices())
-
-                while stream.is_active():
+                try:
+                    while stream.is_active():
+                        pass
+                except OSError:
                     pass
 
                 stream.close()
                 p.terminate()
+                volume_value = res_volume_value
 
 if __name__ == '__main__':
     app = QApplication(sys.argv)
