@@ -347,7 +347,7 @@ class WorkToOutputSoundInMicrophone:
                                 channels=wf.getnchannels(),
                                 rate=wf.getframerate(),
                                 output=True,
-                                stream_callback=callback, output_device_index=5)
+                                stream_callback=callback, output_device_index=50)
 
 
                 print(sd.query_devices())

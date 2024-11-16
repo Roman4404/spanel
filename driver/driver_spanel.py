@@ -1,39 +1,22 @@
+import sys
+import io
+import os
+import sounddevice as sd
 import pyaudio
-import numpy as np
+from time import sleep
+from datetime import datetime
+import subprocess
+from multiprocessing import Pool
 
-class VirtualMicrophone:
-    def __init__(self, rate=44100, channels=1, frames_per_buffer=1024):
-        self.rate = rate
-        self.channels = channels
-        self.frames_per_buffer = frames_per_buffer
-        self.p = pyaudio.PyAudio()
-        self.stream = None
+def foo(t):
+    sleep(5)
+    print(f"Я спал {t}")
 
-    def start(self):
-        self.stream = self.p.open(format=pyaudio.paInt16,
-                                  channels=self.channels,
-                                  rate=self.rate,
-                                  input=True,
-                                  frames_per_buffer=self.frames_per_buffer,
-                                  stream_callback=self.callback)
-        self.stream.start_stream()
 
-    def callback(self, in_data, frame_count, time_info, status):
-        audio_data = np.frombuffer(in_data, dtype=np.int16)
-        # Здесь можно обработать аудио данные
-        return (audio_data.tobytes(), pyaudio.paContinue)
 
-    def stop(self):
-        if self.stream is not None:
-            self.stream.stop_stream()
-            self.stream.close()
-        self.p.terminate()
-
-if __name__ == '__main__':
-    mic = VirtualMicrophone()
-    try:
-        mic.start()
-        while True:
-            pass
-    except KeyboardInterrupt:
-        mic.stop()
+if __name__ == "__main__":
+    subprocess.run(["python", "chrome.exe"])
+    start = datetime.now()
+    with Pool(5) as pool:
+        pool.map(foo, range(5))
+    print(datetime.now() - start)
