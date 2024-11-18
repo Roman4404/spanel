@@ -297,69 +297,68 @@ class WorkToOutputSoundInMicrophone:
         self.file_name = file_name
         self.format_file = format_file
 
+    def index_input(self):
+        with open('../mainWindows/date/settings_app.txt', 'r', encoding="utf8") as f:
+            read_l = f.readlines()
+            str_inp = read_l[0][3:-1]
+            index_inp = 2
+            devices = list(sd.query_devices())
+            for device in devices[::-1]:
+                if device['hostapi'] != 3:
+                    break
+                elif device['name'] == str_inp:
+                    index_inp = device['index']
+                    print(index_inp)
+        return index_inp
+
+    def index_output(self):
+        devices = list(sd.query_devices())
+        for device in devices[::-1]:
+            if device['name'] == 'Output (VB-Audio Point)':
+                print(device['max_output_channels'])
+                if device['max_output_channels'] == 16:
+                    print(device['index'])
+                    return device['index']
     def run(self):
         global volume_value
         global stop_valve
         global res_volume_value
         res_volume_value = volume_value
-        # data, samplerate = sf.read(self.file_name)
-        # format = pyaudio.paInt16
-        # channels = 1
-        # rate = 44100
-        # chunk = 1024
-        #
-        # p = pyaudio.PyAudio()
-        #
-        # stream_input = p.open(format=format, channels=channels, rate=rate, input=True, frames_per_buffer=chunk)
-        # stream_output = p.open(format=format, channels=channels, rate=rate, output=True)
-        #
-        # try:
-        #     while True:
-        #         audio_data = np.frombuffer(data, dtype=np.int16)
-        #         stream_output.write(data)
-        #
-        # except KeyboardInterrupt:
-        #     pass
-        #
-        #
-        # stream_input.stop_stream()
-        # stream_input.close()
-        # stream_output.stop_stream()
-        # stream_output.close()
-        # p.terminate()
-
         if self.format_file == '.wav':
-            with wave.open(self.file_name, 'rb') as wf:
+            wf = wave.open(self.file_name, 'rb')
+        def callback(in_data, frame_count, time_info, status):
+            if self.format_file != 'read':
+                data = wf.readframes(frame_count)
+                audio_data = np.frombuffer(data, dtype=np.int16)
+                self.volume_value = int(volume_value) / 100
 
-                def callback(in_data, frame_count, time_info, status):
-                    data = wf.readframes(frame_count)
-                    audio_data = np.frombuffer(data, dtype=np.int16)
-                    self.volume_value = int(volume_value) / 100
+                if self.volume_value == float(-0.01):
+                    stream.close()
+                audio_data = (audio_data * self.volume_value).astype(np.int16)
+            else:
+                pass
+            return (audio_data.tobytes(), pyaudio.paContinue)
 
-                    if self.volume_value == float(-0.01):
-                        stream.close()
-                    audio_data = (audio_data * self.volume_value).astype(np.int16)
-
-                    return (audio_data.tobytes(), pyaudio.paContinue)
-
-                p = pyaudio.PyAudio()
-                stream = p.open(format=p.get_format_from_width(wf.getsampwidth()),
-                                channels=wf.getnchannels(),
-                                rate=wf.getframerate(),
-                                output=True,
-                                stream_callback=callback, output_device_index=50)
+        p = pyaudio.PyAudio()
+        stream = p.open(format=p.get_format_from_width(wf.getsampwidth()),
+                        channels=wf.getnchannels(),
+                        rate=wf.getframerate(),
+                        output=True,
+                        input=True,
+                        stream_callback=callback, output_device_index=self.index_output(), input_device_index=self.index_input())
 
 
-                print(sd.query_devices())
-                try:
-                    while stream.is_active():
-                        pass
-                except OSError:
-                    pass
+        print(sd.query_devices())
+        try:
+            while stream.is_active():
+                pass
+        except OSError:
+            pass
 
-                stream.close()
-                p.terminate()
-                volume_value = res_volume_value
+        stream.close()
+        p.terminate()
+        volume_value = res_volume_value
+        wf.close()
 
 if __name__ == '__main__':
     app = QApplication(sys.argv)
