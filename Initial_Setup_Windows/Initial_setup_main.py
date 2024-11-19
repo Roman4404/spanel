@@ -19,16 +19,15 @@ class Interface(QMainWindow):
     def __init__(self):
         super().__init__()
         self.setFixedSize(600, 400)
-        uic.loadUi("./Interface/Base.ui", self)
-        background = QPixmap('./Interface/image/background.png')
-        welcome_words = QPixmap('./Interface/image/Welcome_words_spanel.png')
+        uic.loadUi("./Initial_Setup_Windows/Interface/Base.ui", self)
+        background = QPixmap('./Initial_Setup_Windows/Interface/image/background.png')
+        welcome_words = QPixmap('./Initial_Setup_Windows/Interface/image/Welcome_words_spanel.png')
         self.backgroand_img_label.setPixmap(background)
         self.Welcome_words_label.setPixmap(welcome_words)
         #self.text_welcome_label.setPixmap(text_welcome)
         self.start_pushButton.clicked.connect(self.go_to_next_stage)
 
     def go_to_next_stage(self):
-        print(1)
         widget.setCurrentIndex(widget.currentIndex() + 1)
 
 
@@ -37,40 +36,47 @@ class Stage1SitingsMicrofon(QMainWindow):
     def __init__(self):
         super().__init__()
         self.setFixedSize(600, 400)
-        uic.loadUi('./Interface/stage_1_sitings_microfon.ui', self)
-        background = QPixmap('./Interface/image/background.png')
+        uic.loadUi('./Initial_Setup_Windows/Interface/stage_1_sitings_microfon.ui', self)
+        background = QPixmap('./Initial_Setup_Windows/Interface/image/background.png')
         self.backgroand_img_label.setPixmap(background)
         self.update_list_divies()
         self.update_pushButton.clicked.connect(self.update_list_divies)
         self.next_pushButton.clicked.connect(self.next_step)
+        self.back_pushButton.clicked.connect(self.back_step)
 
     def update_list_divies(self): #Функция обновления по кнопки не работает
         self.list_devices_comboBox.clear()
         devices = list(sd.query_devices())
         print(sd.query_devices())
-        for device in devices[::-1]:
+        for device in devices:
             print(device)
-            if device['hostapi'] != 3:
+            if device['index'] == 0:
+                continue
+            elif device['max_output_channels'] != 0:
                 break
             elif device['max_input_channels'] != 0:
                 self.list_devices_comboBox.addItem(f'{device["index"]} {device["name"]}')
 
     def next_step(self):
-        with open('../mainWindows/date/settings_app.txt', 'w', newline='', encoding="utf8") as f:
+        with open('./mainWindows/date/settings_app.txt', 'w', newline='', encoding="utf8") as f:
             print(self.list_devices_comboBox.currentText(), file=f)
             print('99', file=f)
         Stage2 = WaitStage()
         widget.addWidget(Stage2)
         widget.setCurrentIndex(2)
 
+    def back_step(self):
+        widget.setCurrentIndex(widget.currentIndex() - 1)
+
 
 class WaitStage(QMainWindow):
     def __init__(self):
         super().__init__()
-        uic.loadUi('./Interface/stage_2_waiting_driver.ui', self)
-        background = QPixmap('./Interface/image/background.png')
+        uic.loadUi('./Initial_Setup_Windows/Interface/stage_2_waiting_driver.ui', self)
+        background = QPixmap('./Initial_Setup_Windows/Interface/image/background.png')
         self.backgroand_img_label.setPixmap(background)
         self.next_pushButton.clicked.connect(self.start_download)
+        self.back_pushButton.clicked.connect(self.back_step)
 
 
     def start_download(self):
@@ -116,22 +122,34 @@ class WaitStage(QMainWindow):
             zip_ref.extractall(extract_to)
             self.process_label.setText("Распаковано")
 
+    def back_step(self):
+        widget.setCurrentIndex(widget.currentIndex() - 1)
+
 
 class FinishStage(QMainWindow):
     def __init__(self):
         super().__init__()
-        uic.loadUi('./Interface/stage_wait.ui', self)
-        background = QPixmap('./Interface/image/background.png')
+        uic.loadUi('./Initial_Setup_Windows/Interface/stage_wait.ui', self)
+        background = QPixmap('./Initial_Setup_Windows/Interface/image/background.png')
         self.backgroand_img_label.setPixmap(background)
+        os.makedirs('./mainWindows/date')
+        os.makedirs('./mainWindows/date/sound_vaults')
+        with open('./mainWindows/date/songs_info.csv', 'w', newline='', encoding="utf8") as create_songs_file:
+            print('id;keyboards_key;song_name;run_song;file_name;format_file', file=create_songs_file)
+        with open('./mainWindows/date/busy_hot_key.txt', 'w', newline='', encoding="utf8") as f:
+            pass
         self.next_pushButton.clicked.connect(self.run)
 
     def run(self):
         widget.close()
+        subprocess.run(['./pyt/Scripts/python.exe', 'main.py'])
 
 
 if __name__ == '__main__':
     app = QApplication(sys.argv)
+    app.setWindowIcon(QIcon('./mainWindows/Interface/image/icon.png'))
     widget = QtWidgets.QStackedWidget()
+    widget.setWindowTitle('Настройка SPanel')
     Base = Interface()
     Stage1 = Stage1SitingsMicrofon()
     widget.addWidget(Base)
