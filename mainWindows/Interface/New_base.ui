@@ -78,15 +78,55 @@
      <widget class="QTableWidget" name="tableWidget">
       <property name="geometry">
        <rect>
-        <x>0</x>
+        <x>120</x>
         <y>0</y>
-        <width>801</width>
+        <width>681</width>
         <height>541</height>
        </rect>
       </property>
      </widget>
+     <widget class="QPushButton" name="settings_pushButton">
+      <property name="geometry">
+       <rect>
+        <x>0</x>
+        <y>0</y>
+        <width>81</width>
+        <height>41</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>Настройки</string>
+      </property>
+     </widget>
+     <widget class="QPushButton" name="hiding_profile_right_pushButton">
+      <property name="geometry">
+       <rect>
+        <x>80</x>
+        <y>0</y>
+        <width>41</width>
+        <height>41</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string/>
+      </property>
+     </widget>
+     <widget class="QWidget" name="verticalLayoutWidget">
+      <property name="geometry">
+       <rect>
+        <x>0</x>
+        <y>40</y>
+        <width>121</width>
+        <height>491</height>
+       </rect>
+      </property>
+      <layout class="QVBoxLayout" name="profile_verticalLayout"/>
+     </widget>
      <zorder>tableWidget</zorder>
      <zorder>add_button</zorder>
+     <zorder>settings_pushButton</zorder>
+     <zorder>hiding_profile_right_pushButton</zorder>
+     <zorder>verticalLayoutWidget</zorder>
     </widget>
     <widget class="QWidget" name="tab_2">
      <property name="enabled">
@@ -163,7 +203,7 @@
     <property name="geometry">
      <rect>
       <x>0</x>
-      <y>570</y>
+      <y>580</y>
       <width>791</width>
       <height>31</height>
      </rect>
@@ -212,7 +252,6 @@
    <addaction name="menu_3"/>
    <addaction name="menu_4"/>
   </widget>
-  <widget class="QStatusBar" name="statusbar"/>
  </widget>
  <resources/>
  <connections/>

@@ -22,6 +22,8 @@ class Interface(QMainWindow):
         uic.loadUi("./Initial_Setup_Windows/Interface/Base.ui", self)
         background = QPixmap('./Initial_Setup_Windows/Interface/image/background.png')
         welcome_words = QPixmap('./Initial_Setup_Windows/Interface/image/Welcome_words_spanel.png')
+        os.makedirs('./mainWindows/date')
+        os.makedirs('./mainWindows/date/sound_vaults')
         self.backgroand_img_label.setPixmap(background)
         self.Welcome_words_label.setPixmap(welcome_words)
         #self.text_welcome_label.setPixmap(text_welcome)
@@ -47,9 +49,7 @@ class Stage1SitingsMicrofon(QMainWindow):
     def update_list_divies(self): #Функция обновления по кнопки не работает
         self.list_devices_comboBox.clear()
         devices = list(sd.query_devices())
-        print(sd.query_devices())
         for device in devices:
-            print(device)
             if device['index'] == 0:
                 continue
             elif device['max_output_channels'] != 0:
@@ -89,7 +89,7 @@ class WaitStage(QMainWindow):
             self.process_label.setText("Установщик завершил работу.")
             self.next_pushButton.setEnabled(True)
             self.next_pushButton.setText('Продолжить')
-            print(sd.query_devices())
+            #print(sd.query_devices())
         elif self.next_pushButton.text() == 'Продолжить':
             Stage3 = FinishStage()
             widget.addWidget(Stage3)
@@ -106,7 +106,6 @@ class WaitStage(QMainWindow):
     def download_vb_cable(self):
         url_driver = 'https://download.vb-audio.com/Download_CABLE/VBCABLE_Driver_Pack45.zip'
         self.output_file = 'VBCABLE_Driver_Pack45.zip'
-        print("Начинаем загрузку VB-CABLE...")
         response = requests.get(url_driver, stream=True)
         if response.status_code == 200:
             with open(self.output_file, 'wb') as file:
@@ -114,7 +113,8 @@ class WaitStage(QMainWindow):
                     file.write(chunk)
             self.process_label.setText("VB-CABLE загружен")
         else:
-            print("Ошибка загрузки файла:", response.status_code)
+            pass
+            # print("Ошибка загрузки файла:", response.status_code)
 
     def extract_zip(self, file_path, extract_to):
         self.process_label.setText("Распаковка VB-CABLE...")
@@ -132,8 +132,6 @@ class FinishStage(QMainWindow):
         uic.loadUi('./Initial_Setup_Windows/Interface/stage_wait.ui', self)
         background = QPixmap('./Initial_Setup_Windows/Interface/image/background.png')
         self.backgroand_img_label.setPixmap(background)
-        os.makedirs('./mainWindows/date')
-        os.makedirs('./mainWindows/date/sound_vaults')
         with open('./mainWindows/date/songs_info.csv', 'w', newline='', encoding="utf8") as create_songs_file:
             print('id;keyboards_key;song_name;run_song;file_name;format_file', file=create_songs_file)
         with open('./mainWindows/date/busy_hot_key.txt', 'w', newline='', encoding="utf8") as f:
@@ -142,7 +140,7 @@ class FinishStage(QMainWindow):
 
     def run(self):
         widget.close()
-        subprocess.run(['./pyt/Scripts/python.exe', 'main.py'])
+        subprocess.run(['./pyt/Scripts/python.exe','main.py'])
 
 
 if __name__ == '__main__':

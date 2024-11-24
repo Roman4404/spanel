@@ -13,15 +13,15 @@ import pyaudio
 import numpy as np
 import wave
 import time
+import sqlite3
 from multiprocessing import Pool, Process
-from PyQt6.QtCore import Qt
+from PyQt6.QtCore import Qt, QSize
 
 
 from PyQt6 import uic  # Импортируем uic
-from PyQt6.QtWidgets import QApplication, QMainWindow, QFileDialog, QTableWidgetItem, QDialog
+from PyQt6.QtWidgets import QApplication, QMainWindow, QFileDialog, QTableWidgetItem, QDialog, QInputDialog
 from PyQt6.QtWidgets import QPushButton, QLabel
 from PyQt6.QtGui import QPixmap, QIcon
-
 
 class AddSoundError(Exception):
     pass
@@ -89,8 +89,9 @@ class WorkToHotKey: #Государственный орган по отслеж
         pass
 
     def add_hot_key_in_ram(self, file_name, format_file):
-        t = WorkToOutputSoundInMicrophone(file_name, format_file)
-        kb.add_hotkey(str(' '.join(map(str, str(self.hot_key).split()))).lower(), lambda: t.run())
+        if self.hot_key:
+            t = WorkToOutputSoundInMicrophone(file_name, format_file)
+            kb.add_hotkey(str(' '.join(map(str, str(self.hot_key).split()))).lower(), lambda: t.run())
 
     def stop_valve_sound(self):
         global res_volume_value
@@ -106,11 +107,23 @@ class Interface(QMainWindow): #Интерфейс
                 './mainWindows/date/settings_app.txt') or not os.path.isfile('./mainWindows/date/busy_hot_key.txt'):
             self.start_program_create_files()
         uic.loadUi("./mainWindows/Interface/New_base.ui", self)
-        self.setWindowTitle('SPanel')
+        self.setWindowTitle('SPanel 0.2(Alpha)')
+        with open('./mainWindows/date/settings_profile.txt', 'r', encoding="utf8") as f:
+            read_l = f.readlines()
+            text = read_l[0]
+            t = text.split('-')
+            a = t[1][:t[1].find("\n")]
+            self.profile_now = a
+        self.profile_now = ''
+        self.btn_profile = dict()
         self.add_button.clicked.connect(self.add_sound)
         self.stop_pushButton.clicked.connect(self.stop_valve_sound)
         self.names_sound = []
         self.volume_up_icon = QPixmap('./mainWindows/Interface/image/volume_up_icon_white.png')
+        self.close_right_icon = QIcon('./mainWindows/Interface/image/right_icon_white.png')
+        self.hiding_profile_right_pushButton.setIcon(self.close_right_icon)
+        self.hiding_profile_right_pushButton.setIconSize(QSize(32, 32))
+        self.settings_pushButton.clicked.connect(self.settings_profile)
         # self.play_icon = QPixmap("./mainWindows/Interface/image/play_and_pause_icon_white.png")
         # self.play_pushButton.setIcon(QIcon(self.play_icon))
         # self.play_pushButton.setIconSize(self.play_icon.rect().size())
@@ -124,21 +137,27 @@ class Interface(QMainWindow): #Интерфейс
         self.valuts_volums_verticalSlider.valueChanged.connect(self.update_volume_value)
         self.update_sound_table('./mainWindows/date/songs_info.csv')
         self.stop_pushButton.clicked.connect(self.stop_valve_sound)
+        self.update_profile_tabel()
         global stop_valve
         stop_valve = 0
+        global stream_active_now
+        stream_active_now = False
         kb.add_hotkey('ctrl + f', lambda: WorkToHotKey('ctrl + f').stop_valve_sound())
         MicrofonOutput('micro')
 
 
 
     def start_program_create_files(self):
-        subprocess.run(['./pyt/Scripts/python.exe', './Initial_Setup_Windows/Initial_setup_main.py'])
+        subprocess.run(['./pyt/Scripts/python.exe','./Initial_Setup_Windows/Initial_setup_main.py'])
         if not os.path.isfile("./mainWindows/date/songs_info.csv") or not os.path.isfile(
                 './mainWindows/date/settings_app.txt') or not os.path.isfile('./mainWindows/date/busy_hot_key.txt'):
             self.close()
-        else:
-            self.valuts_volums_verticalSlider.setValue(99)
 
+    def settings_profile(self):
+        et = SettingsProfile()
+        et.show()
+        et.exec()
+        self.update_profile_tabel()
 
     def start_program(self, table_name):
         with open('./mainWindows/date/settings_app.txt', 'r', encoding="utf8") as f:
@@ -164,7 +183,8 @@ class Interface(QMainWindow): #Интерфейс
             et.exec()
             self.update_sound_table('./mainWindows/date/songs_info.csv')
         except AddSoundError as s:
-            print(s)
+            pass
+            # print(s)
 
     def update_volume_value(self):
         global volume_value
@@ -173,33 +193,63 @@ class Interface(QMainWindow): #Интерфейс
     def stop_valve_sound(self):
         global res_volume_value
         global volume_value
-        res_volume_value = self.valuts_volums_verticalSlider.value()
-        volume_value = -1
+        global stream_active_now
+        if stream_active_now:
+            res_volume_value = self.valuts_volums_verticalSlider.value()
+            volume_value = -1
 
+    def update_profile_tabel(self):
+        while self.profile_verticalLayout.count() > 0:
+            widgetToRemove = self.profile_verticalLayout.takeAt(0).widget()
+            widgetToRemove.setParent(None)
+        con = sqlite3.connect("./mainWindows/date/profile_info.sqlite")
+        cur = con.cursor()
+        res = cur.execute('''SELECT name FROM sqlite_master WHERE type='table';''').fetchall()
+        res = res[:-1]
+        con.close()
+        with open('./mainWindows/date/settings_profile.txt', 'r', encoding="utf8") as f:
+            read_l = f.readlines()
+            for text in read_l[1:]:
+                t = text.split('-')
+                a = t[1][:t[1].find("\n")]
+                b = t[0]
+                self.btn_profile[a] = self.btn_profile.get(a, b)
+                btn = QPushButton(a, self)
+                if a == self.profile_now:
+                    btn.setEnabled(False)
+                    btn.setDown(True)
+                btn.clicked.connect(self.click_button)
+                self.profile_verticalLayout.addWidget(btn)
+        self.profile_verticalLayout.addStretch()
 
     def update_sound_table(self, table_name):
-        with open(table_name, encoding="utf8") as csvfile:
-            reader = csv.reader(csvfile, delimiter=';', quotechar='"')
-            title = next(reader)
-            self.tableWidget.setColumnCount(len(title))
-            self.tableWidget.setHorizontalHeaderLabels(title)
-            self.tableWidget.setRowCount(0)
-            for i, row in enumerate(reader):
-                self.tableWidget.setRowCount(
-                    self.tableWidget.rowCount() + 1)
-                for j, elem in enumerate(row):
-                    self.tableWidget.setItem(
-                        i, j, QTableWidgetItem(elem))
+        con = sqlite3.connect("mainWindows/date/profile_info.sqlite")
+        cur = con.cursor()
+        result = cur.execute(f'''SELECT * FROM {'profile1_info'}''').fetchall()
+        con.close()
+        title = ['id','Клавиши','Название аудио', 'Время','file_name','format_file']
+        self.tableWidget.setColumnCount(len(title))
+        self.tableWidget.setHorizontalHeaderLabels(title)
+        self.tableWidget.setRowCount(0)
+        for i, row in enumerate(result):
+            self.tableWidget.setRowCount(
+                self.tableWidget.rowCount() + 1)
+            for j, elem in enumerate(row):
+                self.tableWidget.setItem(
+                    i, j, QTableWidgetItem(elem))
         self.tableWidget.resizeColumnsToContents()
         self.tableWidget.setColumnWidth(0, 0)
         self.tableWidget.setColumnWidth(1, 150)
-        self.tableWidget.setColumnWidth(2, 540)
+        self.tableWidget.setColumnWidth(2, 420)
         self.tableWidget.setColumnWidth(3, 90)
         self.tableWidget.setColumnWidth(4, 0)
         self.tableWidget.setColumnWidth(5, 0)
 
+    def click_button(self):
+        print(self.sender().text())
+
     def closeEvent(self, event):
-        with open('.mainWindows/date/settings_app.txt', 'r', encoding="utf8") as f:
+        with open('./mainWindows/date/settings_app.txt', 'r', encoding="utf8") as f:
             read_l = f.readlines()
             device = read_l[0][:-1]
         with open('./mainWindows/date/settings_app.txt', 'w', newline='', encoding="utf8") as f:
@@ -243,7 +293,7 @@ class FinalDialogWindowAddSound(QDialog):
 
     def other_file(self):
         try:
-            file_name = QFileDialog.getOpenFileName(self, 'Выбрать картинку', '')[0]
+            file_name = QFileDialog.getOpenFileName(self, 'Выберите звук для добавления', '', 'Wave file (*.wav)')[0]
             if file_name == '':
                 raise FileAddError('')
             elif not TinyTag.is_supported(file_name):
@@ -251,7 +301,8 @@ class FinalDialogWindowAddSound(QDialog):
             self.file_name = file_name
             self.name_sound_lineEdit.setText(str(file_name))
         except AddSoundError as s:
-            print(s)
+            pass
+            # print(s)
 
 
 class RecordHotKeyDialogWindow(QDialog):
@@ -305,7 +356,6 @@ def index_input():
         for device in devices:
             if device['name'] == str_inp:
                 index_inp = device['index']
-                print(index_inp)
                 break
     return index_inp
 
@@ -313,9 +363,7 @@ def index_output():
     devices = list(sd.query_devices())
     for device in devices[::-1]:
         if device['name'] == 'Output (VB-Audio Point)':
-            print(device['max_output_channels'])
             if device['max_output_channels'] == 16:
-                print(device['index'])
                 return device['index']
 
 def index_out_system():
@@ -324,7 +372,6 @@ def index_out_system():
     for device in devices:
         if device['name'] == 'CABLE Input (VB-Audio Virtual C':
             index_inp = device['index']
-            print(index_inp)
             break
     return index_inp
 
@@ -334,9 +381,101 @@ def index_inp_system():
     for device in devices:
         if device['name'] == 'Input (VB-Audio Point)':
             index_inp = device['index']
-            print(index_inp)
             break
     return index_inp
+
+class SettingsProfile(QDialog):
+    def __init__(self):
+        super().__init__()
+        uic.loadUi('./mainWindows/Interface/profile_settings.ui', self)
+        self.update_profile_tabel()
+        self.ok_pushButton.clicked.connect(self.close_window)
+        self.profile_listWidget.itemClicked.connect(self.click_profile)
+        self.edit_name_pushButton.setEnabled(False)
+        self.del_pushButton.setEnabled(False)
+        self.edit_name_pushButton.clicked.connect(self.edit_name_profile)
+        self.add_button.clicked.connect(self.add_profile)
+        self.del_pushButton.clicked.connect(self.del_profile)
+
+    def update_profile_tabel(self):
+        self.profile_listWidget.clear()
+        con = sqlite3.connect("./mainWindows/date/profile_info.sqlite")
+        cur = con.cursor()
+        res = cur.execute('''SELECT name FROM sqlite_master WHERE type='table';''').fetchall()
+        res = res[:-1]
+        con.close()
+        with open('./mainWindows/date/settings_profile.txt', 'r', encoding="utf8") as f:
+            read_l = f.readlines()
+            for text in read_l[1:]:
+                t = text.split('-')
+                a = t[1][:t[1].find("\n")]
+                b = t[0]
+                self.profile_listWidget.addItem(a)
+
+    def click_profile(self, item):
+        self.click_profile_label.setText(item.text())
+        n_profile = self.profile_listWidget.count()
+        self.edit_name_pushButton.setEnabled(True)
+        if n_profile != 1:
+            self.del_pushButton.setEnabled(True)
+
+    def add_profile(self):
+        text, ok = QInputDialog.getText(self, 'Новый профиль:', 'Название профиля:')
+        if ok and text:
+            current_row = self.profile_listWidget.currentRow()
+            self.profile_listWidget.insertItem(current_row + 1, text)
+            with open('./mainWindows/date/settings_profile.txt', 'r', encoding="utf8") as f:
+                old_d = f.read()
+            num = int(old_d[:old_d.find('\n')]) + 1
+            old_d = old_d.replace(old_d[:old_d.find('\n')], str(str(num)), 1)
+            with open('./mainWindows/date/settings_profile.txt', 'w', encoding="utf8") as f:
+                f.write(old_d + str(f'profile{num}_info' + '-' + text +'\n'))
+            con = sqlite3.connect("./mainWindows/date/profile_info.sqlite")
+            cur = con.cursor()
+            cur.execute(f'''CREATE TABLE profile{num}_info (
+                                    id            INTEGER PRIMARY KEY AUTOINCREMENT,
+                                    keyboards_key TEXT    NOT NULL,
+                                    song_name     TEXT    NOT NULL,
+                                    run_song      TEXT    NOT NULL,
+                                    file_name     TEXT    NOT NULL
+                                );''').fetchall()
+            con.close()
+            self.click_profile_label.setText(text)
+
+    def edit_name_profile(self):
+        t = self.click_profile_label.text()
+        text, ok = QInputDialog.getText(self, 'Переминовка:', 'Новое название:')
+        if ok and text:
+            with open('./mainWindows/date/settings_profile.txt', 'r', encoding="utf8") as f:
+                old_d = f.read()
+
+            new_d = old_d.replace(t, text)
+
+            with open('./mainWindows/date/settings_profile.txt', 'w', encoding="utf8") as f:
+                f.write(new_d)
+
+            self.update_profile_tabel()
+            self.click_profile_label.setText(text)
+
+    def del_profile(self):
+        t = self.click_profile_label.text()
+        with open('./mainWindows/date/settings_profile.txt', 'r', encoding="utf8") as f:
+            data = f.read()
+        name_table = data[data[:data.find(t) - 1].rfind('\n') + 1 :data.find(t) - 1]
+        step_table = data[data[:data.find(t) - 1].rfind('\n') :data[data[:data.find(t) - 1].rfind('\n') + 1].find('\n')]
+        num = int(data[:data.find('\n')]) - 1
+        data = data.replace(str(str(num + 1)), str(str(num)), 1)
+        data = data.replace(step_table, "")
+        with open('./mainWindows/date/settings_profile.txt', 'w', encoding="utf8") as f:
+            f.write(data)
+        con = sqlite3.connect("./mainWindows/date/profile_info.sqlite")
+        cur = con.cursor()
+        cur.execute(f'''DROP TABLE {name_table}''')
+        self.click_profile_label.setText('')
+        self.update_profile_tabel()
+
+    def close_window(self):
+        self.close()
 
 class WorkToOutputSoundInMicrophone:
 
@@ -348,6 +487,8 @@ class WorkToOutputSoundInMicrophone:
         global volume_value
         global stop_valve
         global res_volume_value
+        global stream_active_now
+        stream_active_now = True
         res_volume_value = volume_value
         if self.format_file == '.wav':
             wf = wave.open(self.file_name, 'rb')
@@ -373,7 +514,6 @@ class WorkToOutputSoundInMicrophone:
                         output=True,
                         stream_callback=callback, output_device_index=index_out_system())
 
-        print(sd.query_devices())
         try:
             while stream.is_active():
                 pass
@@ -383,6 +523,7 @@ class WorkToOutputSoundInMicrophone:
         stream.close()
         p.terminate()
         volume_value = res_volume_value
+        stream_active_now = False
         wf.close()
 
 
