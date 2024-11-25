@@ -90,25 +90,12 @@
        <rect>
         <x>0</x>
         <y>0</y>
-        <width>81</width>
+        <width>121</width>
         <height>41</height>
        </rect>
       </property>
       <property name="text">
        <string>Настройки</string>
-      </property>
-     </widget>
-     <widget class="QPushButton" name="hiding_profile_right_pushButton">
-      <property name="geometry">
-       <rect>
-        <x>80</x>
-        <y>0</y>
-        <width>41</width>
-        <height>41</height>
-       </rect>
-      </property>
-      <property name="text">
-       <string/>
       </property>
      </widget>
      <widget class="QWidget" name="verticalLayoutWidget">
@@ -125,7 +112,6 @@
      <zorder>tableWidget</zorder>
      <zorder>add_button</zorder>
      <zorder>settings_pushButton</zorder>
-     <zorder>hiding_profile_right_pushButton</zorder>
      <zorder>verticalLayoutWidget</zorder>
     </widget>
     <widget class="QWidget" name="tab_2">
@@ -217,6 +203,19 @@
      <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-style:italic;&quot;&gt;*Не забудте преключить микрофон в программах на Cable OUTPUT&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
     </property>
    </widget>
+   <widget class="QPushButton" name="help_pushButton">
+    <property name="geometry">
+     <rect>
+      <x>710</x>
+      <y>570</y>
+      <width>91</width>
+      <height>31</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>Руководство</string>
+    </property>
+   </widget>
   </widget>
   <widget class="QMenuBar" name="menubar">
    <property name="geometry">
@@ -231,16 +230,19 @@
     <property name="title">
      <string>Файл</string>
     </property>
+    <addaction name="action"/>
    </widget>
    <widget class="QMenu" name="menu_2">
     <property name="title">
      <string>Студия Звуков</string>
     </property>
+    <addaction name="action_2"/>
    </widget>
    <widget class="QMenu" name="menu_3">
     <property name="title">
      <string>Настройки</string>
     </property>
+    <addaction name="action_3"/>
    </widget>
    <widget class="QMenu" name="menu_4">
     <property name="title">
@@ -252,6 +254,21 @@
    <addaction name="menu_3"/>
    <addaction name="menu_4"/>
   </widget>
+  <action name="action">
+   <property name="text">
+    <string>Скоро ╰(*°▽°*)╯</string>
+   </property>
+  </action>
+  <action name="action_2">
+   <property name="text">
+    <string>Скоро ╰(*°▽°*)╯</string>
+   </property>
+  </action>
+  <action name="action_3">
+   <property name="text">
+    <string>Скоро ╰(*°▽°*)╯</string>
+   </property>
+  </action>
  </widget>
  <resources/>
  <connections/>

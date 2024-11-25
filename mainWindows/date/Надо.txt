@@ -1,8 +1,0 @@
-
-CREATE TABLE profile1_info (
-    id            INTEGER PRIMARY KEY AUTOINCREMENT,
-    keyboards_key TEXT    NOT NULL,
-    song_name     TEXT    NOT NULL,
-    run_song      TEXT    NOT NULL,
-    file_name     TEXT    NOT NULL
-);

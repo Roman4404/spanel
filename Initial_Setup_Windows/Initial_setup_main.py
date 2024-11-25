@@ -7,12 +7,17 @@ import requests
 import keyboard as kb
 import zipfile
 import sounddevice as sd
+import sqlite3
+import webbrowser
 from PyQt6.QtCore import Qt
 from PyQt6 import uic, QtWidgets  # Импортируем uic
 from PyQt6.QtWidgets import QApplication, QMainWindow, QFileDialog, QTableWidgetItem, QDialog
 from PyQt6.QtWidgets import QPushButton, QLabel
 from PyQt6.QtGui import QPixmap, QIcon
 from Tools.scripts.pindent import start
+
+def help():
+    webbrowser.open('https://github.com/Roman4404/spanel/wiki')
 
 
 class Interface(QMainWindow):
@@ -45,6 +50,7 @@ class Stage1SitingsMicrofon(QMainWindow):
         self.update_pushButton.clicked.connect(self.update_list_divies)
         self.next_pushButton.clicked.connect(self.next_step)
         self.back_pushButton.clicked.connect(self.back_step)
+        self.help_commandLinkButton.clicked.connect(help)
 
     def update_list_divies(self): #Функция обновления по кнопки не работает
         self.list_devices_comboBox.clear()
@@ -77,6 +83,7 @@ class WaitStage(QMainWindow):
         self.backgroand_img_label.setPixmap(background)
         self.next_pushButton.clicked.connect(self.start_download)
         self.back_pushButton.clicked.connect(self.back_step)
+        self.help_commandLinkButton.clicked.connect(help)
 
 
     def start_download(self):
@@ -131,16 +138,31 @@ class FinishStage(QMainWindow):
         super().__init__()
         uic.loadUi('./Initial_Setup_Windows/Interface/stage_wait.ui', self)
         background = QPixmap('./Initial_Setup_Windows/Interface/image/background.png')
+        done_words = QPixmap('./Initial_Setup_Windows/Interface/image/Done_words_spanel.png')
+        self.Welcome_words_label.setPixmap(done_words)
         self.backgroand_img_label.setPixmap(background)
-        with open('./mainWindows/date/songs_info.csv', 'w', newline='', encoding="utf8") as create_songs_file:
-            print('id;keyboards_key;song_name;run_song;file_name;format_file', file=create_songs_file)
         with open('./mainWindows/date/busy_hot_key.txt', 'w', newline='', encoding="utf8") as f:
             pass
+        connection = sqlite3.connect('./mainWindows/date/profile_info.sqlite')
+        connection.close()
+        with open('./mainWindows/date/settings_profile.txt', 'w', newline='', encoding="utf8") as f:
+            print('1', file=f)
+            print('profile1_info-Профель 1', file=f)
+        con = sqlite3.connect("./mainWindows/date/profile_info.sqlite")
+        cur = con.cursor()
+        cur.execute('''CREATE TABLE profile1_info (
+                                id            INTEGER PRIMARY KEY AUTOINCREMENT,
+                                keyboards_key TEXT    NOT NULL,
+                                song_name     TEXT    NOT NULL,
+                                run_song      TEXT    NOT NULL,
+                                file_name     TEXT    NOT NULL,
+                                format_file   TEXT    NOT NULL 
+                            );''').fetchall()
+        con.close()
         self.next_pushButton.clicked.connect(self.run)
 
     def run(self):
         widget.close()
-        subprocess.run(['./pyt/Scripts/python.exe','main.py'])
 
 
 if __name__ == '__main__':

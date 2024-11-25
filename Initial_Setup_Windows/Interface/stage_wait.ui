@@ -14,24 +14,6 @@
    <string>MainWindow</string>
   </property>
   <widget class="QWidget" name="centralwidget">
-   <widget class="QLabel" name="label">
-    <property name="geometry">
-     <rect>
-      <x>30</x>
-      <y>-30</y>
-      <width>541</width>
-      <height>201</height>
-     </rect>
-    </property>
-    <property name="font">
-     <font>
-      <pointsize>55</pointsize>
-     </font>
-    </property>
-    <property name="text">
-     <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;SPanel Готов&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-    </property>
-   </widget>
    <widget class="QLabel" name="backgroand_img_label">
     <property name="geometry">
      <rect>
@@ -48,8 +30,8 @@
    <widget class="QLabel" name="label_process">
     <property name="geometry">
      <rect>
-      <x>10</x>
-      <y>130</y>
+      <x>0</x>
+      <y>200</y>
       <width>611</width>
       <height>121</height>
      </rect>
@@ -60,7 +42,7 @@
      </font>
     </property>
     <property name="text">
-     <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;Поменяте во всех приложениях микрофон&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;на &amp;quot;CABLE Output&amp;quot; и запусти SPanel &lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;заново&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+     <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p align=&quot;center&quot;&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;Поменяте во всех приложениях микрофон&lt;/span&gt;&lt;/p&gt;&lt;p align=&quot;center&quot;&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;на &amp;quot;CABLE Output&amp;quot; &lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
     </property>
     <property name="alignment">
      <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignTop</set>
@@ -69,7 +51,7 @@
    <widget class="QPushButton" name="next_pushButton">
     <property name="geometry">
      <rect>
-      <x>240</x>
+      <x>250</x>
       <y>310</y>
       <width>75</width>
       <height>23</height>
@@ -79,10 +61,22 @@
      <string>OK</string>
     </property>
    </widget>
-   <zorder>backgroand_img_label</zorder>
-   <zorder>label</zorder>
-   <zorder>label_process</zorder>
-   <zorder>next_pushButton</zorder>
+   <widget class="QLabel" name="Welcome_words_label">
+    <property name="geometry">
+     <rect>
+      <x>0</x>
+      <y>0</y>
+      <width>600</width>
+      <height>200</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string/>
+    </property>
+    <property name="alignment">
+     <set>Qt::AlignCenter</set>
+    </property>
+   </widget>
   </widget>
   <widget class="QMenuBar" name="menubar">
    <property name="geometry">

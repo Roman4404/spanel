@@ -20,7 +20,7 @@
       <x>10</x>
       <y>10</y>
       <width>561</width>
-      <height>121</height>
+      <height>151</height>
      </rect>
     </property>
     <property name="font">
@@ -30,7 +30,7 @@
      </font>
     </property>
     <property name="text">
-     <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-size:11pt;&quot;&gt;Сейчас начнется загрузка драйверов, Разрешите установку от&lt;/span&gt;&lt;span style=&quot; font-size:11pt; font-style:italic;&quot;&gt; Администратора&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-size:11pt; font-weight:600;&quot;&gt;Иначе SPanel не будет работать!&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-size:11pt; font-weight:600;&quot;&gt;Чтобы начать установку нажмите &amp;quot;Начать&amp;quot;, после&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-size:11pt; font-weight:600;&quot;&gt;установки нажмите 'Продолжить'&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+     <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-size:11pt;&quot;&gt;Сейчас начнется загрузка драйверов, Разрешите установку от&lt;/span&gt;&lt;span style=&quot; font-size:11pt; font-style:italic;&quot;&gt; Администратора&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-size:11pt; font-weight:600;&quot;&gt;Иначе SPanel не будет работать!&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-size:11pt; font-weight:600;&quot;&gt;Чтобы начать установку нажмите &amp;quot;Начать&amp;quot;, после&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-size:11pt; font-weight:600;&quot;&gt;установки нажмите 'Продолжить'&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-size:11pt; font-weight:600;&quot;&gt;Если окно будет не отвечать это нормально!&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
     </property>
     <property name="alignment">
      <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignTop</set>
@@ -79,7 +79,7 @@
     <property name="geometry">
      <rect>
       <x>10</x>
-      <y>140</y>
+      <y>170</y>
       <width>185</width>
       <height>41</height>
      </rect>

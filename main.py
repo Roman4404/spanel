@@ -10,10 +10,12 @@ import soundfile as sf
 from tinytag import TinyTag
 import keyboard as kb
 import pyaudio
+import darkdetect
 import numpy as np
 import wave
 import time
 import sqlite3
+import webbrowser
 from multiprocessing import Pool, Process
 from PyQt6.QtCore import Qt, QSize
 
@@ -42,28 +44,35 @@ class WorkToSoundFile:
         shutil.copy2(f'{self.file_name}', f'./mainWindows/date/sound_vaults/{name_f}')
         return f'./mainWindows/date/sound_vaults/{name_f}'
 
-    def add_file_in_bd(self, name_sound):
+    def add_file_in_bd(self, name_sound, table_profile):
         file_name = self.file_name
-        songs_file = open('./mainWindows/date/songs_info.csv', 'r', newline='', encoding="utf8")
-        read_song = csv.DictReader(songs_file, delimiter=';', quotechar='"')
-        read_song_sort = sorted(read_song, key=lambda x: int(x['id']), reverse=False)
-        if len(read_song_sort) == 0:
-            last_id = 0
-        else:
-            last_id = int(read_song_sort[-1]['id'])
-        songs_file.close()
+        # songs_file = open('./mainWindows/date/songs_info.csv', 'r', newline='', encoding="utf8")
+        # read_song = csv.DictReader(songs_file, delimiter=';', quotechar='"')
+        # read_song_sort = sorted(read_song, key=lambda x: int(x['id']), reverse=False)
+        # if len(read_song_sort) == 0:
+        #     last_id = 0
+        # else:
+        #     last_id = int(read_song_sort[-1]['id'])
+        # songs_file.close()
         sound_file = TinyTag.get(file_name)
         len_sound_file = sound_file.duration
         format_file = file_name[-4:]
-        new_song_final = [last_id + 1, str(key).upper(), name_sound, f'{int(len_sound_file // 60)}:{int(len_sound_file % 60)}', file_name, format_file]
+        new_song_final = ['', str(key).upper(), name_sound, f'{int(len_sound_file // 60)}:{int(len_sound_file % 60)}', file_name, format_file]
+        format_request = f'INSERT INTO {table_profile} (keyboards_key, song_name, run_song, file_name, format_file) VALUES (key_k, s_file, time_s, file_pyt, f_format);'
+        format_request = format_request.replace('key_k', str('"' + new_song_final[1] + '"'))
+        format_request = format_request.replace('s_file', str('"' + new_song_final[2] + '"'))
+        format_request = format_request.replace('time_s', str('"' + new_song_final[3] + '"'))
+        format_request = format_request.replace('file_pyt', str('"' + new_song_final[4] + '"'))
+        format_request = format_request.replace('f_format', str('"' + new_song_final[5] + '"'))
         hot_key = WorkToHotKey(key)
         hot_key.add_hot_key_in_ram(file_name, format_file)
         with open('./mainWindows/date/busy_hot_key.txt', 'a', newline='', encoding="utf8") as f:
             print(key.upper(), file=f)
-        with open('./mainWindows/date/songs_info.csv', 'a', newline='', encoding="utf8") as f:
-            writer = csv.writer(
-                f, delimiter=';', quotechar='"', quoting=csv.QUOTE_MINIMAL)
-            writer.writerow(new_song_final)
+        con = sqlite3.connect("mainWindows/date/profile_info.sqlite")
+        cur = con.cursor()
+        cur.execute(f'''{format_request}''').fetchall()
+        con.commit()
+        con.close()
 
 
 class WorkToHotKey: #Государственный орган по отслеживанию деятельности горячих клавиш
@@ -103,40 +112,48 @@ class WorkToHotKey: #Государственный орган по отслеж
 class Interface(QMainWindow): #Интерфейс
     def __init__(self):
         super().__init__()
-        if not os.path.isfile("./mainWindows/date/songs_info.csv") or not os.path.isfile(
+        if not os.path.isfile("./mainWindows/date/profile_info.sqlite") or not os.path.isfile(
                 './mainWindows/date/settings_app.txt') or not os.path.isfile('./mainWindows/date/busy_hot_key.txt'):
             self.start_program_create_files()
         uic.loadUi("./mainWindows/Interface/New_base.ui", self)
         self.setWindowTitle('SPanel 0.2(Alpha)')
         with open('./mainWindows/date/settings_profile.txt', 'r', encoding="utf8") as f:
             read_l = f.readlines()
-            text = read_l[0]
+            text = read_l[1]
             t = text.split('-')
             a = t[1][:t[1].find("\n")]
+            b = t[0]
             self.profile_now = a
-        self.profile_now = ''
+            self.profile_now_table = b
         self.btn_profile = dict()
+        self.btn_group_profile = list()
         self.add_button.clicked.connect(self.add_sound)
         self.stop_pushButton.clicked.connect(self.stop_valve_sound)
         self.names_sound = []
-        self.volume_up_icon = QPixmap('./mainWindows/Interface/image/volume_up_icon_white.png')
-        self.close_right_icon = QIcon('./mainWindows/Interface/image/right_icon_white.png')
-        self.hiding_profile_right_pushButton.setIcon(self.close_right_icon)
-        self.hiding_profile_right_pushButton.setIconSize(QSize(32, 32))
+        if darkdetect.isDark():
+            self.volume_up_icon = QPixmap('./mainWindows/Interface/image/volume_up_icon_white.png')
+            # self.close_right_icon = QIcon('./mainWindows/Interface/image/right_icon_white.png')
+            self.stop_icon = QPixmap('./mainWindows/Interface/image/stop_icon_white.png')
+        else:
+            self.volume_up_icon = QPixmap('./mainWindows/Interface/image/volume_up_icon_dark.png')
+            # self.close_right_icon = QIcon('./mainWindows/Interface/image/right_icon_dark.png')
+            self.stop_icon = QPixmap('./mainWindows/Interface/image/stop_icon_dark.png')
+        # self.hiding_profile_right_pushButton.setIcon(self.close_right_icon)
+        # self.hiding_profile_right_pushButton.setIconSize(QSize(32, 32))
         self.settings_pushButton.clicked.connect(self.settings_profile)
         # self.play_icon = QPixmap("./mainWindows/Interface/image/play_and_pause_icon_white.png")
         # self.play_pushButton.setIcon(QIcon(self.play_icon))
         # self.play_pushButton.setIconSize(self.play_icon.rect().size())
-        self.stop_icon = QPixmap('./mainWindows/Interface/image/stop_icon_white.png')
         self.stop_pushButton.setIcon(QIcon(self.stop_icon))
         self.stop_pushButton.setIconSize(self.stop_icon.rect().size())
         self.volume_icon_label.setPixmap(self.volume_up_icon)
-        self.start_program('./mainWindows/date/songs_info.csv')
+        self.start_program()
         global volume_value
         volume_value = self.valuts_volums_verticalSlider.value()
         self.valuts_volums_verticalSlider.valueChanged.connect(self.update_volume_value)
-        self.update_sound_table('./mainWindows/date/songs_info.csv')
+        self.update_sound_table()
         self.stop_pushButton.clicked.connect(self.stop_valve_sound)
+        self.help_pushButton.clicked.connect(self.help)
         self.update_profile_tabel()
         global stop_valve
         stop_valve = 0
@@ -149,9 +166,6 @@ class Interface(QMainWindow): #Интерфейс
 
     def start_program_create_files(self):
         subprocess.run(['./pyt/Scripts/python.exe','./Initial_Setup_Windows/Initial_setup_main.py'])
-        if not os.path.isfile("./mainWindows/date/songs_info.csv") or not os.path.isfile(
-                './mainWindows/date/settings_app.txt') or not os.path.isfile('./mainWindows/date/busy_hot_key.txt'):
-            self.close()
 
     def settings_profile(self):
         et = SettingsProfile()
@@ -159,17 +173,21 @@ class Interface(QMainWindow): #Интерфейс
         et.exec()
         self.update_profile_tabel()
 
-    def start_program(self, table_name):
+    def start_program(self):
         with open('./mainWindows/date/settings_app.txt', 'r', encoding="utf8") as f:
             read_l = f.readlines()
             volume_value = int(read_l[1][:-1])
             self.valuts_volums_verticalSlider.setValue(volume_value)
-        with open(table_name, encoding="utf8") as csvfile:
-            reader = csv.DictReader(csvfile, delimiter=';', quotechar='"')
-            for song_info in list(reader):
-                hot_key = WorkToHotKey(song_info['keyboards_key'])
-                hot_key.add_hot_key_in_ram(song_info['file_name'], song_info['format_file'])
+        self.update_hot_key()
 
+    def update_hot_key(self):
+        con = sqlite3.connect("mainWindows/date/profile_info.sqlite")
+        cur = con.cursor()
+        result = cur.execute(f'''SELECT * FROM {self.profile_now_table}''').fetchall()
+        con.close()
+        for item in result:
+            hot_key = WorkToHotKey(item[1])
+            hot_key.add_hot_key_in_ram(item[2], item[5])
 
     def add_sound(self):
         try:
@@ -178,10 +196,10 @@ class Interface(QMainWindow): #Интерфейс
                 raise FileAddError('')
             elif not TinyTag.is_supported(file_name):
                 raise FileAddError('Выбран не подерживающися формат')
-            et = FinalDialogWindowAddSound(file_name)
+            et = FinalDialogWindowAddSound(file_name, self.btn_profile)
             et.show()
             et.exec()
-            self.update_sound_table('./mainWindows/date/songs_info.csv')
+            self.update_sound_table()
         except AddSoundError as s:
             pass
             # print(s)
@@ -201,7 +219,10 @@ class Interface(QMainWindow): #Интерфейс
     def update_profile_tabel(self):
         while self.profile_verticalLayout.count() > 0:
             widgetToRemove = self.profile_verticalLayout.takeAt(0).widget()
-            widgetToRemove.setParent(None)
+            if widgetToRemove == None:
+                break
+            else:
+                widgetToRemove.setParent(None)
         con = sqlite3.connect("./mainWindows/date/profile_info.sqlite")
         cur = con.cursor()
         res = cur.execute('''SELECT name FROM sqlite_master WHERE type='table';''').fetchall()
@@ -220,12 +241,13 @@ class Interface(QMainWindow): #Интерфейс
                     btn.setDown(True)
                 btn.clicked.connect(self.click_button)
                 self.profile_verticalLayout.addWidget(btn)
+                self.btn_group_profile.append(btn)
         self.profile_verticalLayout.addStretch()
 
-    def update_sound_table(self, table_name):
+    def update_sound_table(self):
         con = sqlite3.connect("mainWindows/date/profile_info.sqlite")
         cur = con.cursor()
-        result = cur.execute(f'''SELECT * FROM {'profile1_info'}''').fetchall()
+        result = cur.execute(f'''SELECT * FROM {self.profile_now_table}''').fetchall()
         con.close()
         title = ['id','Клавиши','Название аудио', 'Время','file_name','format_file']
         self.tableWidget.setColumnCount(len(title))
@@ -246,7 +268,15 @@ class Interface(QMainWindow): #Интерфейс
         self.tableWidget.setColumnWidth(5, 0)
 
     def click_button(self):
-        print(self.sender().text())
+        self.profile_now = self.sender().text()
+        self.profile_now_table = self.btn_profile[self.profile_now]
+        kb.unhook_all_hotkeys()
+        self.update_hot_key()
+        self.update_profile_tabel()
+        self.update_sound_table()
+
+    def help(self):
+        webbrowser.open('https://github.com/Roman4404/spanel/wiki')
 
     def closeEvent(self, event):
         with open('./mainWindows/date/settings_app.txt', 'r', encoding="utf8") as f:
@@ -260,26 +290,41 @@ class Interface(QMainWindow): #Интерфейс
 
 class FinalDialogWindowAddSound(QDialog):
 
-    def __init__(self, file_name):
+    def __init__(self, file_name, table_info):
         super().__init__()
         uic.loadUi("./mainWindows/Interface/final_add_sound.ui", self)
         self.file_name = file_name
+        self.table_info = table_info
         self.name_sound_lineEdit.setText(str(file_name[file_name.rfind('/') + 1:file_name.rfind('.')]))
         self.ok_pushButton.clicked.connect(self.run)
         self.file_select_other_pushButton.clicked.connect(self.other_file)
         self.cancel_pushButton.clicked.connect(self.stop)
         self.to_record_window_pushButton.clicked.connect(self.record_hot_key)
         self.setWindowTitle('Добавление звука')
+        self.start()
         global volume_value
         global key
         key = ''
 
+    def start(self):
+        con = sqlite3.connect("./mainWindows/date/profile_info.sqlite")
+        cur = con.cursor()
+        res = cur.execute('''SELECT name FROM sqlite_master WHERE type='table';''').fetchall()
+        res = res[:-1]
+        con.close()
+        with open('./mainWindows/date/settings_profile.txt', 'r', encoding="utf8") as f:
+            read_l = f.readlines()
+            for text in read_l[1:]:
+                t = text.split('-')
+                a = t[1][:t[1].find("\n")]
+                b = t[0]
+                self.profile_selection_comboBox.addItem(a)
 
     def run(self):
         new_sound_file = WorkToSoundFile(self.file_name)
         file_name = new_sound_file.copy_file()
         new_sound_file = WorkToSoundFile(file_name)
-        new_sound_file.add_file_in_bd(name_sound=self.name_sound_lineEdit.text())
+        new_sound_file.add_file_in_bd(name_sound=self.name_sound_lineEdit.text(),table_profile=self.table_info[self.profile_selection_comboBox.currentText()])
         self.close()
 
     def stop(self):
@@ -323,15 +368,9 @@ class RecordHotKeyDialogWindow(QDialog):
         self.record_pushButton.hide()
         self.record_pushButton.setEnabled(False)
         self.key = kb.read_hotkey(suppress = False)
-        key_busy = WorkToHotKey(self.key)
-        if key_busy.check_hot_key_busy_lite():
-            self.hot_key_view.setText(f'Занята')
-            self.ok_pushButton.setEnabled(False)
-
-        else:
-            self.hot_key_view.setText(f'{str(self.key).upper()}')
-            self.reset_pushButton.setEnabled(True)
-            self.ok_pushButton.setEnabled(True)
+        self.hot_key_view.setText(f'{str(self.key).upper()}')
+        self.reset_pushButton.setEnabled(True)
+        self.ok_pushButton.setEnabled(True)
 
     def stop(self):
         self.close()
@@ -437,7 +476,8 @@ class SettingsProfile(QDialog):
                                     keyboards_key TEXT    NOT NULL,
                                     song_name     TEXT    NOT NULL,
                                     run_song      TEXT    NOT NULL,
-                                    file_name     TEXT    NOT NULL
+                                    file_name     TEXT    NOT NULL,
+                                    format_file   TEXT    NOT NULL 
                                 );''').fetchall()
             con.close()
             self.click_profile_label.setText(text)
