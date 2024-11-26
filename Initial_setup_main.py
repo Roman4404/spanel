@@ -11,7 +11,6 @@ from PyQt6 import uic, QtWidgets  # Импортируем uic
 from PyQt6.QtWidgets import QApplication, QMainWindow, QFileDialog, QTableWidgetItem, QDialog
 from PyQt6.QtWidgets import QPushButton, QLabel
 from PyQt6.QtGui import QPixmap, QIcon
-from Tools.scripts.pindent import start
 
 def help():
     webbrowser.open('https://github.com/Roman4404/spanel/wiki')
