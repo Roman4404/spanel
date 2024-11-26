@@ -156,7 +156,7 @@ class Interface(QMainWindow): #Интерфейс
 
 
     def start_program_create_files(self):
-        subprocess.run(['./Initial_Setup_Windows/Initial_setup_main.exe'])
+        subprocess.run(['./pyt/Scripts/python.exe','./Initial_Setup_Windows/Initial_setup_main.py'])
 
     def settings_profile(self):
         et = SettingsProfile()
