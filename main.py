@@ -79,15 +79,6 @@ class WorkToHotKey: #Государственный орган по отслеж
     def __init__(self, hot_key):
         self.hot_key = hot_key
 
-    def check_hot_key_busy_lite(self):
-        with open('./mainWindows/date/busy_hot_key.txt', 'r', newline='', encoding="utf8") as f:
-            read_file = f.readlines()
-            for i in read_file:
-                if str(self.hot_key).upper() == i[:-1]:
-                    return True
-            return False
-
-
     def add_hot_key_busy(self):
         pass
 
@@ -165,7 +156,7 @@ class Interface(QMainWindow): #Интерфейс
 
 
     def start_program_create_files(self):
-        subprocess.run(['./pyt/Scripts/python.exe','./Initial_Setup_Windows/Initial_setup_main.py'])
+        subprocess.run(['./Initial_Setup_Windows/Initial_setup_main.exe'])
 
     def settings_profile(self):
         et = SettingsProfile()
@@ -435,6 +426,7 @@ class SettingsProfile(QDialog):
         self.edit_name_pushButton.clicked.connect(self.edit_name_profile)
         self.add_button.clicked.connect(self.add_profile)
         self.del_pushButton.clicked.connect(self.del_profile)
+        self.setWindowTitle('Настройки профелей')
 
     def update_profile_tabel(self):
         self.profile_listWidget.clear()
