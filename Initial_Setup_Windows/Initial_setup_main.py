@@ -1,10 +1,7 @@
 import sys
-import io
 import os
-import time
 import subprocess
 import requests
-import keyboard as kb
 import zipfile
 import sounddevice as sd
 import sqlite3
