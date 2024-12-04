@@ -92,6 +92,7 @@ class WorkToHotKey: #Государственный орган по отслеж
         if self.hot_key:
             t = WorkToOutputSoundInMicrophone(file_name, format_file)
             kb.add_hotkey(str(' '.join(map(str, str(self.hot_key).split()))).lower(), lambda: t.run())
+            print('1')
 
     def stop_valve_sound(self):
         global res_volume_value
@@ -179,7 +180,7 @@ class Interface(QMainWindow): #Интерфейс
         con.close()
         for item in result:
             hot_key = WorkToHotKey(item[1])
-            hot_key.add_hot_key_in_ram(item[2], item[5])
+            hot_key.add_hot_key_in_ram(item[4], item[5])
 
     def add_sound(self):
         try:
