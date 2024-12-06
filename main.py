@@ -13,6 +13,7 @@ import pyaudio
 import darkdetect
 import numpy as np
 import wave
+import shutil
 import time
 import sqlite3
 import webbrowser
@@ -611,7 +612,7 @@ class Tech_Windows(QDialog):
         self.ok_pushButton.clicked.connect(self.stop)
 
     def stop(self):
-        os.remove('./mainWindows/date')
+        shutil.rmtree('./mainWindows/date')
         self.close()
 
 if __name__ == '__main__':
