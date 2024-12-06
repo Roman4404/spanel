@@ -79,7 +79,6 @@ class WorkToSoundFile:
 class WorkToHotKey: #Государственный орган по отслеживанию деятельности горячих клавиш
     def __init__(self, hot_key):
         self.hot_key = hot_key
-        self.translate
 
     def add_hot_key_busy(self):
         pass
