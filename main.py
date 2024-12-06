@@ -78,6 +78,7 @@ class WorkToSoundFile:
 class WorkToHotKey: #Государственный орган по отслеживанию деятельности горячих клавиш
     def __init__(self, hot_key):
         self.hot_key = hot_key
+        self.translate
 
     def add_hot_key_busy(self):
         pass
@@ -109,14 +110,20 @@ class Interface(QMainWindow): #Интерфейс
             self.start_program_create_files()
         uic.loadUi("./mainWindows/Interface/New_base.ui", self)
         self.setWindowTitle('SPanel 0.2(Alpha)')
-        with open('./mainWindows/date/settings_profile.txt', 'r', encoding="utf8") as f:
-            read_l = f.readlines()
-            text = read_l[1]
-            t = text.split('-')
-            a = t[1][:t[1].find("\n")]
-            b = t[0]
-            self.profile_now = a
-            self.profile_now_table = b
+        try:
+            with open('./mainWindows/date/settings_profile.txt', 'r', encoding="utf8") as f:
+                read_l = f.readlines()
+                text = read_l[1]
+                t = text.split('-')
+                a = t[1][:t[1].find("\n")]
+                b = t[0]
+                self.profile_now = a
+                self.profile_now_table = b
+        except FileNotFoundError:
+            et = Tech_Windows()
+            et.show()
+            et.exec()
+            self.close()
         self.btn_profile = dict()
         self.btn_group_profile = list()
         self.add_button.clicked.connect(self.add_sound)
@@ -167,11 +174,17 @@ class Interface(QMainWindow): #Интерфейс
         self.update_profile_tabel()
 
     def start_program(self):
-        with open('./mainWindows/date/settings_app.txt', 'r', encoding="utf8") as f:
-            read_l = f.readlines()
-            volume_value = int(read_l[1][:-1])
-            self.valuts_volums_verticalSlider.setValue(volume_value)
-        self.update_hot_key()
+        try:
+            with open('./mainWindows/date/settings_app.txt', 'r', encoding="utf8") as f:
+                read_l = f.readlines()
+                volume_value = int(read_l[1][:-1])
+                self.valuts_volums_verticalSlider.setValue(volume_value)
+            self.update_hot_key()
+        except FileNotFoundError:
+            et = Tech_Windows()
+            et.show()
+            et.exec()
+            self.close()
 
     def update_hot_key(self):
         con = sqlite3.connect("mainWindows/date/profile_info.sqlite")
@@ -589,6 +602,16 @@ class MicrofonOutput:
 
     def stop(self):
         self.stream_n.close()
+
+
+class Tech_Windows(QDialog):
+    def __init__(self):
+        super().__init__()
+        uic.loadUi('./mainWindows/Interface/tech_windows.ui', self)
+        self.ok_pushButton.clicked.connect(self.stop)
+
+    def stop(self):
+        self.close()
 
 if __name__ == '__main__':
     app = QApplication(sys.argv)
