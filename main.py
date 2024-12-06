@@ -611,6 +611,7 @@ class Tech_Windows(QDialog):
         self.ok_pushButton.clicked.connect(self.stop)
 
     def stop(self):
+        os.remove('./mainWindows/date')
         self.close()
 
 if __name__ == '__main__':
