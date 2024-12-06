@@ -609,6 +609,7 @@ class Tech_Windows(QDialog):
     def __init__(self):
         super().__init__()
         uic.loadUi('./mainWindows/Interface/tech_windows.ui', self)
+        self.setWindowTitle('Техническое окно')
         self.ok_pushButton.clicked.connect(self.stop)
 
     def stop(self):
