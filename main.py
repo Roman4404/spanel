@@ -37,6 +37,10 @@ class FileAddError(AddSoundError):
 class WorkToSoundFile:
     def __init__(self, file_name):
         self.file_name = file_name
+        self.rus_keyboard = {"А": "F", "П": "G", "Р": "H", "О": "J", "Л": "K", "Д": "L", "Ж": ";", "Э": "'", "Й": "Q",
+                             "Ц": "W", "У": "E", "К": "R", "Е": "T", "Н": "Y", "Г": "U", "Ш": "I", "Щ": "O",
+                             "З": "P", "Х": "[", "Ъ": "]", "Я": "Z", "Ч": "X", "С": "C", "М": "V", "И": "B", "Т": "N",
+                             "Ь": "M", "Б": ",", "Ю": ".", "Ё": "`", "Ф": "A", "Ы": "S", "В": "D"}
         global volume_value
         global key
 
@@ -58,17 +62,19 @@ class WorkToSoundFile:
         sound_file = TinyTag.get(file_name)
         len_sound_file = sound_file.duration
         format_file = file_name[-4:]
-        new_song_final = ['', str(key).upper(), name_sound, f'{int(len_sound_file // 60)}:{int(len_sound_file % 60)}', file_name, format_file]
+        key = ''
+        key_final = str(key).upper()
+        hot_key_old = WorkToHotKey(key_final)
+        key_final = hot_key_old.rus_to_eng_keyboard()
+        new_song_final = ['', key_final, name_sound, f'{int(len_sound_file // 60)}:{int(len_sound_file % 60)}', file_name, format_file]
         format_request = f'INSERT INTO {table_profile} (keyboards_key, song_name, run_song, file_name, format_file) VALUES (key_k, s_file, time_s, file_pyt, f_format);'
         format_request = format_request.replace('key_k', str('"' + new_song_final[1] + '"'))
         format_request = format_request.replace('s_file', str('"' + new_song_final[2] + '"'))
         format_request = format_request.replace('time_s', str('"' + new_song_final[3] + '"'))
         format_request = format_request.replace('file_pyt', str('"' + new_song_final[4] + '"'))
         format_request = format_request.replace('f_format', str('"' + new_song_final[5] + '"'))
-        hot_key = WorkToHotKey(key)
+        hot_key = WorkToHotKey(key_final)
         hot_key.add_hot_key_in_ram(file_name, format_file)
-        with open('./mainWindows/date/busy_hot_key.txt', 'a', newline='', encoding="utf8") as f:
-            print(key.upper(), file=f)
         con = sqlite3.connect("mainWindows/date/profile_info.sqlite")
         cur = con.cursor()
         cur.execute(f'''{format_request}''').fetchall()
@@ -79,6 +85,12 @@ class WorkToSoundFile:
 class WorkToHotKey: #Государственный орган по отслеживанию деятельности горячих клавиш
     def __init__(self, hot_key):
         self.hot_key = hot_key
+        self.rus_keyboard = {"А": "F", "П": "G", "Р": "H", "О": "J", "Л": "K", "Д": "L", "Ж": ";", "Э": "'", "Й": "Q", "Ц": "W", "У": "E", "К": "R", "Е": "T", "Н": "Y", "Г": "U", "Ш": "I", "Щ": "O",
+                             "З": "P", "Х": "[", "Ъ": "]", "Я": "Z", "Ч": "X", "С": "C", "М": "V", "И": "B", "Т": "N", "Ь": "M", "Б": ",", "Ю": ".", "Ё": "`", "Ф": "A", "Ы": "S", "В": "D"}
+
+        self.eng_keyboard = {'F': 'А', 'G': 'П', 'H': 'Р', 'J': 'О', 'K': 'Л', 'L': 'Д', ';': 'Ж', "'": 'Э', 'Q': 'Й', 'W': 'Ц', 'E': 'У', 'R': 'К', 'T': 'Е', 'Y': 'Н', 'U': 'Г', 'I': 'Ш',
+                             'O': 'Щ', 'P': 'З', '[': 'Х', ']': 'Ъ', 'Z': 'Я', 'X': 'Ч', 'C': 'С', 'V': 'М',
+                             'B': 'И', 'N': 'Т', 'M': 'Ь', ',': 'Б', '.': 'Ю', '`': 'Ё', 'A': 'Ф', 'S': 'Ы', 'D': 'В'}
 
     def add_hot_key_busy(self):
         pass
@@ -93,7 +105,6 @@ class WorkToHotKey: #Государственный орган по отслеж
         if self.hot_key:
             t = WorkToOutputSoundInMicrophone(file_name, format_file)
             kb.add_hotkey(str(' '.join(map(str, str(self.hot_key).split()))).lower(), lambda: t.run())
-            print('1')
 
     def stop_valve_sound(self):
         global res_volume_value
@@ -101,6 +112,11 @@ class WorkToHotKey: #Государственный орган по отслеж
         res_volume_value = 49
         volume_value = 0
 
+    def rus_to_eng_keyboard(self):
+        for i in self.hot_key:
+            if i in self.rus_keyboard:
+                self.hot_key = self.hot_key.replace(i, self.rus_keyboard[i])
+        return self.hot_key
 
 class Interface(QMainWindow): #Интерфейс
     def __init__(self):
@@ -109,7 +125,7 @@ class Interface(QMainWindow): #Интерфейс
                 './mainWindows/date/settings_app.txt') or not os.path.isfile('./mainWindows/date/busy_hot_key.txt'):
             self.start_program_create_files()
         uic.loadUi("./mainWindows/Interface/New_base.ui", self)
-        self.setWindowTitle('SPanel 0.2(Alpha)')
+        self.setWindowTitle('SPanel 0.24(Alpha)')
         try:
             with open('./mainWindows/date/settings_profile.txt', 'r', encoding="utf8") as f:
                 read_l = f.readlines()
@@ -154,6 +170,8 @@ class Interface(QMainWindow): #Интерфейс
         self.stop_pushButton.clicked.connect(self.stop_valve_sound)
         self.help_pushButton.clicked.connect(self.help)
         self.update_profile_tabel()
+        self.tableWidget.cellClicked.connect(self.info_table_cell)
+        self.disable_editing(self.tableWidget)
         global stop_valve
         stop_valve = 0
         global stream_active_now
@@ -163,9 +181,11 @@ class Interface(QMainWindow): #Интерфейс
 
 
 
-    def start_program_create_files(self):
-        pass
-        # subprocess.run(['./pyt/Scripts/python.exe', './Initial_Setup_Windows/Initial_setup_main.py'])
+    def info_table_cell(self, row, column):
+        table = self.sender()
+        item_id  = table.item(row, 2).text()
+        if column == 1:
+            self.edit_hot_key(table, row, item_id)
 
     def settings_profile(self):
         et = SettingsProfile()
@@ -273,6 +293,32 @@ class Interface(QMainWindow): #Интерфейс
         self.tableWidget.setColumnWidth(4, 0)
         self.tableWidget.setColumnWidth(5, 0)
 
+    def disable_editing(self, tableWidget):
+        for row in range(tableWidget.rowCount()):
+            for column in range(tableWidget.columnCount()):
+                item = tableWidget.item(row, column)
+                if item is not None:
+                    item.setFlags(item.flags() & ~Qt.ItemFlag.ItemIsEditable)
+
+    def edit_hot_key(self, table, row, item_id):
+        global key
+        key = ''
+        et = RecordHotKeyDialogWindow("Test")
+        et.show()
+        et.exec()
+        if key:
+            print('Good!')
+            print(key)
+            item = QTableWidgetItem(str(key))
+            item.setFlags(item.flags() & ~Qt.ItemFlag.ItemIsEditable)
+            table.setItem(row, 1, item)
+            con = sqlite3.connect("mainWindows/date/profile_info.sqlite")
+            cur = con.cursor()
+            cur.execute(f'''UPDATE profile1_info SET keyboards_key == "{str(key)}" WHERE song_name == "{str(item_id)}"''').fetchall()
+            con.commit()
+            con.close()
+
+
     def click_button(self):
         self.profile_now = self.sender().text()
         self.profile_now_table = self.btn_profile[self.profile_now]
@@ -374,7 +420,9 @@ class RecordHotKeyDialogWindow(QDialog):
         self.record_pushButton.hide()
         self.record_pushButton.setEnabled(False)
         self.key = kb.read_hotkey(suppress = False)
-        self.hot_key_view.setText(f'{str(self.key).upper()}')
+        hot_key = WorkToHotKey(str(self.key).upper())
+        self.key = hot_key.rus_to_eng_keyboard()
+        self.hot_key_view.setText(f'{str(self.key)}')
         self.reset_pushButton.setEnabled(True)
         self.ok_pushButton.setEnabled(True)
 
