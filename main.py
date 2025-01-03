@@ -126,7 +126,7 @@ class Interface(QMainWindow): #Интерфейс
                 './mainWindows/date/settings_app.txt') or not os.path.isfile('./mainWindows/date/busy_hot_key.txt'):
             self.start_program_create_files()
         uic.loadUi("./mainWindows/Interface/New_base.ui", self)
-        self.setWindowTitle('SPanel 0.24(Alpha)')
+        self.setWindowTitle('SPanel 0.25(Alpha)')
         try:
             with open('./mainWindows/date/settings_profile.txt', 'r', encoding="utf8") as f:
                 read_l = f.readlines()
@@ -173,6 +173,11 @@ class Interface(QMainWindow): #Интерфейс
         self.update_profile_tabel()
         self.tableWidget.cellDoubleClicked.connect(self.info_table_cell)
         self.tableWidget.cellChanged.connect(self.edit_name_song)
+        background = QPixmap('./mainWindows/Interface/image/background.png')
+        self.backgroand_img_label.setPixmap(background)
+        self.AI_img_button = QPixmap("./mainWindows/Interface/image/Button_img_AI_Lession_text.png")
+        self.pushButton_AI_song.setIcon(QIcon(self.AI_img_button))
+        self.pushButton_AI_song.setIconSize(self.AI_img_button.rect().size())
         self.disable_editing(self.tableWidget)
         global stop_valve
         stop_valve = 0
