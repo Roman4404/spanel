@@ -26,6 +26,7 @@ from PyQt6.QtWidgets import QApplication, QMainWindow, QFileDialog, QTableWidget
 from PyQt6.QtWidgets import QPushButton, QLabel
 from PyQt6.QtGui import QPixmap, QIcon
 
+
 class AddSoundError(Exception):
     pass
 
@@ -170,7 +171,8 @@ class Interface(QMainWindow): #Интерфейс
         self.stop_pushButton.clicked.connect(self.stop_valve_sound)
         self.help_pushButton.clicked.connect(self.help)
         self.update_profile_tabel()
-        self.tableWidget.cellClicked.connect(self.info_table_cell)
+        self.tableWidget.cellDoubleClicked.connect(self.info_table_cell)
+        self.tableWidget.cellChanged.connect(self.edit_name_song)
         self.disable_editing(self.tableWidget)
         global stop_valve
         stop_valve = 0
@@ -179,11 +181,9 @@ class Interface(QMainWindow): #Интерфейс
         kb.add_hotkey('ctrl + f', lambda: WorkToHotKey('ctrl + f').stop_valve_sound())
         MicrofonOutput('micro')
 
-
-
     def info_table_cell(self, row, column):
         table = self.sender()
-        item_id  = table.item(row, 2).text()
+        item_id = table.item(row, 2).text()
         if column == 1:
             self.edit_hot_key(table, row, item_id)
 
@@ -296,9 +296,10 @@ class Interface(QMainWindow): #Интерфейс
     def disable_editing(self, tableWidget):
         for row in range(tableWidget.rowCount()):
             for column in range(tableWidget.columnCount()):
-                item = tableWidget.item(row, column)
-                if item is not None:
-                    item.setFlags(item.flags() & ~Qt.ItemFlag.ItemIsEditable)
+                if column != 2:
+                    item = tableWidget.item(row, column)
+                    if item is not None:
+                        item.setFlags(item.flags() & ~Qt.ItemFlag.ItemIsEditable)
 
     def edit_hot_key(self, table, row, item_id):
         global key
@@ -318,6 +319,17 @@ class Interface(QMainWindow): #Интерфейс
             con.commit()
             con.close()
 
+    def edit_name_song(self, row, column):
+        if column == 2:
+            table = self.sender()
+            item_key = table.item(row, 1).text()
+            name = table.item(row, column).text()
+            con = sqlite3.connect("mainWindows/date/profile_info.sqlite")
+            cur = con.cursor()
+            cur.execute(
+                f'''UPDATE profile1_info SET song_name == "{str(name)}" WHERE keyboards_key == "{str(item_key)}"''').fetchall()
+            con.commit()
+            con.close()
 
     def click_button(self):
         self.profile_now = self.sender().text()
