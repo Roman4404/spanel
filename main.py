@@ -17,6 +17,8 @@ import shutil
 import time
 import sqlite3
 import webbrowser
+import edge_tts
+import asyncio
 from multiprocessing import Pool, Process
 from PyQt6.QtCore import Qt, QSize
 
@@ -126,7 +128,7 @@ class Interface(QMainWindow): #Интерфейс
                 './mainWindows/date/settings_app.txt') or not os.path.isfile('./mainWindows/date/busy_hot_key.txt'):
             self.start_program_create_files()
         uic.loadUi("./mainWindows/Interface/New_base.ui", self)
-        self.setWindowTitle('SPanel 0.25(Alpha)')
+        self.setWindowTitle('SPanel 0.3(Beta)')
         try:
             with open('./mainWindows/date/settings_profile.txt', 'r', encoding="utf8") as f:
                 read_l = f.readlines()
@@ -178,6 +180,20 @@ class Interface(QMainWindow): #Интерфейс
         self.AI_img_button = QPixmap("./mainWindows/Interface/image/Button_img_AI_Lession_text.png")
         self.pushButton_AI_song.setIcon(QIcon(self.AI_img_button))
         self.pushButton_AI_song.setIconSize(self.AI_img_button.rect().size())
+        self.label_2_ai.hide()
+        self.label_3_ai.hide()
+        self.label_4_ai.hide()
+        self.label_on_ai.hide()
+        self.label_text_ai.hide()
+        self.label_welcome_ai.hide()
+        self.lineEdit_name_audio.hide()
+        self.lineEdit_text_generated.hide()
+        self.pushButton_generated.hide()
+        self.comboBox_sing.hide()
+        self.pushButton_back.hide()
+        self.pushButton_AI_song.clicked.connect(self.to_go_ai_studio)
+        self.pushButton_back.clicked.connect(self.back_go_ai_studio)
+
         self.disable_editing(self.tableWidget)
         global stop_valve
         stop_valve = 0
@@ -343,6 +359,46 @@ class Interface(QMainWindow): #Интерфейс
         self.update_hot_key()
         self.update_profile_tabel()
         self.update_sound_table()
+
+    def to_go_ai_studio(self):
+        self.pushButton_AI_song.hide()
+        self.label_welcome.hide()
+        self.label_2_ai.show()
+        self.label_3_ai.show()
+        self.label_4_ai.show()
+        self.label_on_ai.show()
+        self.label_text_ai.show()
+        self.label_welcome_ai.show()
+        self.lineEdit_name_audio.show()
+        self.lineEdit_text_generated.show()
+        self.pushButton_generated.show()
+        self.comboBox_sing.show()
+        self.pushButton_back.show()
+        self.pushButton_back.setEnabled(True)
+        self.lineEdit_name_audio.setEnabled(True)
+        self.lineEdit_text_generated.setEnabled(True)
+        self.comboBox_sing.setEnabled(True)
+        self.label_on_ai.setEnabled(True)
+
+    def back_go_ai_studio(self):
+        self.pushButton_AI_song.show()
+        self.label_welcome.show()
+        self.label_2_ai.hide()
+        self.label_3_ai.hide()
+        self.label_4_ai.hide()
+        self.label_on_ai.hide()
+        self.label_text_ai.hide()
+        self.label_welcome_ai.hide()
+        self.lineEdit_name_audio.hide()
+        self.lineEdit_text_generated.hide()
+        self.pushButton_generated.hide()
+        self.comboBox_sing.hide()
+        self.pushButton_back.hide()
+        self.pushButton_back.setEnabled(False)
+        self.lineEdit_name_audio.setEnabled(False)
+        self.lineEdit_text_generated.setEnabled(False)
+        self.comboBox_sing.setEnabled(False)
+        self.label_on_ai.setEnabled(False)
 
     def help(self):
         webbrowser.open('https://github.com/Roman4404/spanel/wiki')
@@ -679,6 +735,22 @@ class Tech_Windows(QDialog):
     def stop(self):
         shutil.rmtree('./mainWindows/date')
         self.close()
+
+
+class AI_Studio:
+    def __init__(self):
+        super().__init__()
+
+    async def generate_audio(self, text, rate, volumes):
+        communicate = edge_tts.Communicate("Привет! Я новый ученик в этом классе!",
+                                           'ru-RU-DmitryNeural',
+                                           # rate=rates,
+                                           # volume=volumes,
+                                           proxy=None)
+        await communicate.save("output_2.wav")
+
+    def start_generate(self):
+        asyncio.run(self.generate_audio("Тыща тыща тыща"))
 
 if __name__ == '__main__':
     app = QApplication(sys.argv)
