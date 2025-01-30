@@ -19,6 +19,8 @@ import sqlite3
 import webbrowser
 import edge_tts
 import asyncio
+import random
+import librosa
 from multiprocessing import Pool, Process
 from PyQt6.QtCore import Qt, QSize
 
@@ -65,11 +67,10 @@ class WorkToSoundFile:
         sound_file = TinyTag.get(file_name)
         len_sound_file = sound_file.duration
         format_file = file_name[-4:]
-        key = ''
         key_final = str(key).upper()
         hot_key_old = WorkToHotKey(key_final)
         key_final = hot_key_old.rus_to_eng_keyboard()
-        new_song_final = ['', key_final, name_sound, f'{int(len_sound_file // 60)}:{int(len_sound_file % 60)}', file_name, format_file]
+        new_song_final = ["", key_final, name_sound, f'{int(len_sound_file // 60)}:{int(len_sound_file % 60)}', file_name, format_file]
         format_request = f'INSERT INTO {table_profile} (keyboards_key, song_name, run_song, file_name, format_file) VALUES (key_k, s_file, time_s, file_pyt, f_format);'
         format_request = format_request.replace('key_k', str('"' + new_song_final[1] + '"'))
         format_request = format_request.replace('s_file', str('"' + new_song_final[2] + '"'))
@@ -119,6 +120,7 @@ class WorkToHotKey: #Государственный орган по отслеж
         for i in self.hot_key:
             if i in self.rus_keyboard:
                 self.hot_key = self.hot_key.replace(i, self.rus_keyboard[i])
+        print(self.hot_key)
         return self.hot_key
 
 class Interface(QMainWindow): #Интерфейс
@@ -126,9 +128,9 @@ class Interface(QMainWindow): #Интерфейс
         super().__init__()
         if not os.path.isfile("./mainWindows/date/profile_info.sqlite") or not os.path.isfile(
                 './mainWindows/date/settings_app.txt') or not os.path.isfile('./mainWindows/date/busy_hot_key.txt'):
-            self.start_program_create_files()
+            self.start_program()
         uic.loadUi("./mainWindows/Interface/New_base.ui", self)
-        self.setWindowTitle('SPanel 0.3(Beta)')
+        self.setWindowTitle('SPanel 0.3(Alpha)')
         try:
             with open('./mainWindows/date/settings_profile.txt', 'r', encoding="utf8") as f:
                 read_l = f.readlines()
@@ -191,8 +193,12 @@ class Interface(QMainWindow): #Интерфейс
         self.pushButton_generated.hide()
         self.comboBox_sing.hide()
         self.pushButton_back.hide()
+        self.label_5_ai.hide()
         self.pushButton_AI_song.clicked.connect(self.to_go_ai_studio)
         self.pushButton_back.clicked.connect(self.back_go_ai_studio)
+        self.ai = AI_Studio()
+        self.pushButton_generated.clicked.connect(self.ai_start_generate)
+        self.setFixedSize(862, 672)
 
         self.disable_editing(self.tableWidget)
         global stop_valve
@@ -238,9 +244,11 @@ class Interface(QMainWindow): #Интерфейс
 
     def add_sound(self):
         try:
-            file_name = QFileDialog.getOpenFileName(self, 'Выберите звук для добавления', '', 'Wave file (*.wav)')[0]
+            file_name = QFileDialog.getOpenFileName(self, 'Выберите звук для добавления', '', 'Wave and MP3 file (*.wav; *mp3)')[0]
             if file_name == '':
                 raise FileAddError('')
+            elif file_name[file_name.rfind('.'):] == '.mp3':
+                pass
             elif not TinyTag.is_supported(file_name):
                 raise FileAddError('Выбран не подерживающися формат')
             et = FinalDialogWindowAddSound(file_name, self.btn_profile)
@@ -374,11 +382,15 @@ class Interface(QMainWindow): #Интерфейс
         self.pushButton_generated.show()
         self.comboBox_sing.show()
         self.pushButton_back.show()
+        self.label_5_ai.show()
         self.pushButton_back.setEnabled(True)
         self.lineEdit_name_audio.setEnabled(True)
         self.lineEdit_text_generated.setEnabled(True)
         self.comboBox_sing.setEnabled(True)
         self.label_on_ai.setEnabled(True)
+        self.pushButton_generated.setEnabled(True)
+        self.lineEdit_text_generated.setText('Хамстер крименал')
+        self.lineEdit_name_audio.setText(f'name_audio{random.randint(0, 127899)}')
 
     def back_go_ai_studio(self):
         self.pushButton_AI_song.show()
@@ -394,11 +406,21 @@ class Interface(QMainWindow): #Интерфейс
         self.pushButton_generated.hide()
         self.comboBox_sing.hide()
         self.pushButton_back.hide()
+        self.label_5_ai.hide()
         self.pushButton_back.setEnabled(False)
         self.lineEdit_name_audio.setEnabled(False)
         self.lineEdit_text_generated.setEnabled(False)
         self.comboBox_sing.setEnabled(False)
         self.label_on_ai.setEnabled(False)
+        self.pushButton_generated.setEnabled(False)
+
+    def ai_start_generate(self):
+        file_name = self.ai.start_generate(str(self.lineEdit_text_generated.text()), str(self.lineEdit_name_audio.text()), str(self.comboBox_sing.currentText()))
+        et = FinalDialogWindowAddSound(file_name, self.btn_profile)
+        et.show()
+        et.exec()
+        self.update_sound_table()
+
 
     def help(self):
         webbrowser.open('https://github.com/Roman4404/spanel/wiki')
@@ -448,8 +470,12 @@ class FinalDialogWindowAddSound(QDialog):
     def run(self):
         new_sound_file = WorkToSoundFile(self.file_name)
         file_name = new_sound_file.copy_file()
+        if file_name[file_name.rfind('.'):] == '.mp3':
+            self.convertor_mp3_to_wav(file_name)
+            file_name = file_name[:file_name.rfind('.')] + '.wav'
         new_sound_file = WorkToSoundFile(file_name)
         new_sound_file.add_file_in_bd(name_sound=self.name_sound_lineEdit.text(),table_profile=self.table_info[self.profile_selection_comboBox.currentText()])
+        print(self.profile_selection_comboBox.currentText())
         self.close()
 
     def stop(self):
@@ -461,9 +487,18 @@ class FinalDialogWindowAddSound(QDialog):
         et.exec()
         self.hot_key_lineEdit.setText(str(key).upper())
 
+    def convertor_mp3_to_wav(self, file_name):
+        # Загружаем MP3 файл
+        audio, sr = librosa.load(file_name, sr=None)  # sr=None сохраняет оригинальную частоту
+
+        # Сохраняем в WAV
+        sf.write(f"{file_name[:file_name.rfind('.')]}.wav", audio, sr)
+
+        os.remove(file_name)
+
     def other_file(self):
         try:
-            file_name = QFileDialog.getOpenFileName(self, 'Выберите звук для добавления', '', 'Wave file (*.wav)')[0]
+            file_name = QFileDialog.getOpenFileName(self, 'Выберите звук для добавления', '', 'Wave and MP3 file (*.wav; *mp3)')[0]
             if file_name == '':
                 raise FileAddError('')
             elif not TinyTag.is_supported(file_name):
@@ -739,18 +774,23 @@ class Tech_Windows(QDialog):
 
 class AI_Studio:
     def __init__(self):
-        super().__init__()
+        self.SUPPORTED_VOICES = {
+            'DmitryNeural-Руский(муж.)': 'ru-RU-DmitryNeural',
+            'SvetlanaNeural-Русский(жен.)': 'ru-RU-SvetlanaNeural',
+        }
 
-    async def generate_audio(self, text, rate, volumes):
-        communicate = edge_tts.Communicate("Привет! Я новый ученик в этом классе!",
-                                           'ru-RU-DmitryNeural',
+    async def generate_audio(self, text, name_file, voice_name):
+        communicate = edge_tts.Communicate(text,
+                                           self.SUPPORTED_VOICES[voice_name],
                                            # rate=rates,
                                            # volume=volumes,
                                            proxy=None)
-        await communicate.save("output_2.wav")
+        await communicate.save(str(name_file + ".mp3"))
 
-    def start_generate(self):
-        asyncio.run(self.generate_audio("Тыща тыща тыща"))
+    def start_generate(self, text, name_file, voice_name):
+        asyncio.run(self.generate_audio(text, name_file, voice_name))
+        return str(name_file + ".mp3")
+
 
 if __name__ == '__main__':
     app = QApplication(sys.argv)
