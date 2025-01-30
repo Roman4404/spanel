@@ -23,11 +23,11 @@ pip install -r requirements.txt
 ```
 5.Запустите Initial_setup_main.py
 ```shell
-.\Initial_setup_main.py
+python .\Initial_setup_main.py
 ```
 6.Запустите main.py
 ```shell
-.\main.py
+python .\main.py
 ```
 
 ## Как пользоваться
