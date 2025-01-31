@@ -24,6 +24,7 @@ class Interface(QMainWindow):
         background = QPixmap('./Initial_Setup_Windows/Interface/image/background.png')
         welcome_words = QPixmap('./Initial_Setup_Windows/Interface/image/Welcome_words_spanel.png')
         os.makedirs('./mainWindows/date')
+        os.makedirs('./ai_audio')
         os.makedirs('./mainWindows/date/sound_vaults')
         self.backgroand_img_label.setPixmap(background)
         self.Welcome_words_label.setPixmap(welcome_words)
