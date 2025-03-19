@@ -134,3 +134,4 @@ Ai студия
 ![alt text](example/Скриншот2.png)
 ![alt text](example/Скриншот3.png)
 ![alt text](example/Скриншот4.png)
+![alt text](example/Скриншот5.png)
