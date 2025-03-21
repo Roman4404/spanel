@@ -210,7 +210,7 @@ class Interface(QMainWindow): #Интерфейс
 
     def info_table_cell(self, row, column):
         table = self.sender()
-        item_id = table.item(row, 2).text()
+        item_id = table.item(row, 0).text()
         if column == 1:
             self.edit_hot_key(table, row, item_id)
 
@@ -313,7 +313,7 @@ class Interface(QMainWindow): #Интерфейс
                 self.tableWidget.rowCount() + 1)
             for j, elem in enumerate(row):
                 self.tableWidget.setItem(
-                    i, j, QTableWidgetItem(elem))
+                    i, j, QTableWidgetItem(str(elem)))
         self.tableWidget.resizeColumnsToContents()
         self.tableWidget.setColumnWidth(0, 0)
         self.tableWidget.setColumnWidth(1, 150)
@@ -337,26 +337,24 @@ class Interface(QMainWindow): #Интерфейс
         et.show()
         et.exec()
         if key:
-            print('Good!')
-            print(key)
             item = QTableWidgetItem(str(key))
             item.setFlags(item.flags() & ~Qt.ItemFlag.ItemIsEditable)
             table.setItem(row, 1, item)
             con = sqlite3.connect("mainWindows/date/profile_info.sqlite")
             cur = con.cursor()
-            cur.execute(f'''UPDATE profile1_info SET keyboards_key == "{str(key)}" WHERE song_name == "{str(item_id)}"''').fetchall()
+            cur.execute(f'''UPDATE {self.profile_now_table} SET keyboards_key == "{str(key)}" WHERE id == "{str(item_id)}"''').fetchall()
             con.commit()
             con.close()
 
     def edit_name_song(self, row, column):
         if column == 2:
             table = self.sender()
-            item_key = table.item(row, 1).text()
+            item_id = table.item(row, 0).text()
             name = table.item(row, column).text()
             con = sqlite3.connect("mainWindows/date/profile_info.sqlite")
             cur = con.cursor()
             cur.execute(
-                f'''UPDATE profile1_info SET song_name == "{str(name)}" WHERE keyboards_key == "{str(item_key)}"''').fetchall()
+                f'''UPDATE {self.profile_now_table} SET song_name == "{str(name)}" WHERE id == "{str(item_id)}"''').fetchall()
             con.commit()
             con.close()
 
