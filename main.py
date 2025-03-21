@@ -767,6 +767,7 @@ class Tech_Windows(QDialog):
 
     def stop(self):
         shutil.rmtree('./mainWindows/date')
+        shutil.rmtree('./ai_audio')
         self.close()
 
 

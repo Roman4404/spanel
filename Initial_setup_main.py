@@ -12,6 +12,10 @@ from PyQt6.QtWidgets import QApplication, QMainWindow, QFileDialog, QTableWidget
 from PyQt6.QtWidgets import QPushButton, QLabel
 from PyQt6.QtGui import QPixmap, QIcon
 
+
+microfon_device = str()
+
+
 def help():
     webbrowser.open('https://github.com/Roman4404/spanel/wiki')
 
@@ -23,9 +27,6 @@ class Interface(QMainWindow):
         uic.loadUi("./Initial_Setup_Windows/Interface/Base.ui", self)
         background = QPixmap('./Initial_Setup_Windows/Interface/image/background.png')
         welcome_words = QPixmap('./Initial_Setup_Windows/Interface/image/Welcome_words_spanel.png')
-        os.makedirs('./mainWindows/date')
-        os.makedirs('./ai_audio')
-        os.makedirs('./mainWindows/date/sound_vaults')
         self.backgroand_img_label.setPixmap(background)
         self.Welcome_words_label.setPixmap(welcome_words)
         #self.text_welcome_label.setPixmap(text_welcome)
@@ -61,9 +62,7 @@ class Stage1SitingsMicrofon(QMainWindow):
                 self.list_devices_comboBox.addItem(f'{device["index"]} {device["name"]}')
 
     def next_step(self):
-        with open('./mainWindows/date/settings_app.txt', 'w', newline='', encoding="utf8") as f:
-            print(self.list_devices_comboBox.currentText(), file=f)
-            print('99', file=f)
+        microfon_device = self.list_devices_comboBox.currentText()
         Stage2 = WaitStage()
         widget.addWidget(Stage2)
         widget.setCurrentIndex(2)
@@ -95,6 +94,12 @@ class WaitStage(QMainWindow):
             self.next_pushButton.setText('Продолжить')
             #print(sd.query_devices())
         elif self.next_pushButton.text() == 'Продолжить':
+            os.makedirs('./mainWindows/date')
+            os.makedirs('./ai_audio')
+            os.makedirs('./mainWindows/date/sound_vaults')
+            with open('./mainWindows/date/settings_app.txt', 'w', newline='', encoding="utf8") as f:
+                print(microfon_device, file=f)
+                print('99', file=f)
             Stage3 = FinishStage()
             widget.addWidget(Stage3)
             widget.setCurrentIndex(3)
