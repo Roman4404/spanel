@@ -9,6 +9,7 @@ import sounddevice as sd
 import soundfile as sf
 from tinytag import TinyTag
 import keyboard as kb
+import soundcard as sc
 import pyaudio
 import darkdetect
 import numpy as np
@@ -735,9 +736,9 @@ class MicrofonOutput:
 
 
     def callback_input(self, in_data, frame_count, time_info, status):
-        # audio_data = np.frombuffer(in_data, dtype=np.int16)
-        # audio_data = (audio_data * 0.1).astype(np.int16)
-        return (in_data, pyaudio.paContinue)
+        audio_data = np.frombuffer(in_data, dtype=np.int16)
+        audio_data = (audio_data * 1).astype(np.int16)
+        return (audio_data, pyaudio.paContinue)
 
     def start_microphon(self):
         p = pyaudio.PyAudio()
@@ -747,12 +748,6 @@ class MicrofonOutput:
                         input=True,
                         output=True,
                         stream_callback=self.callback_input, input_device_index=index_input(), output_device_index=index_out_system())
-        self.stream_n = p.open(format=p.get_format_from_width(2),
-                        channels=1,
-                        rate=44100,
-                        input=True,
-                        output=True,
-                        stream_callback=self.callback_input, input_device_index=index_inp_system(), output_device_index=index_output())
 
     def stop(self):
         self.stream_n.close()
