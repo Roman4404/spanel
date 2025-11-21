@@ -37,7 +37,7 @@ python .\main.py
 
 ## Как пользоваться
 
-Всё подробно описано здесь:[Spanel Wiki](https://github.com/Roman4404/spanel.wiki.git)
+Всё подробно описано здесь:[Spanel Wiki](https://github.com/Roman4404/spanel/wiki)
 
 ### Как добавить звук
 1) Нажмите на "+" во вкладке "Звуки"
