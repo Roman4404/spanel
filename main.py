@@ -155,10 +155,12 @@ class Interface(QMainWindow): #Интерфейс
             self.volume_up_icon = QPixmap('./mainWindows/Interface/image/volume_up_icon_white.png')
             # self.close_right_icon = QIcon('./mainWindows/Interface/image/right_icon_white.png')
             self.stop_icon = QPixmap('./mainWindows/Interface/image/stop_icon_white.png')
+            self.micro_icon = QPixmap("./mainWindows/Interface/image/micro_icon_white.png")
         else:
             self.volume_up_icon = QPixmap('./mainWindows/Interface/image/volume_up_icon_dark.png')
             # self.close_right_icon = QIcon('./mainWindows/Interface/image/right_icon_dark.png')
             self.stop_icon = QPixmap('./mainWindows/Interface/image/stop_icon_dark.png')
+            self.micro_icon = QPixmap("./mainWindows/Interface/image/micro_icon_dark.png")
         # self.hiding_profile_right_pushButton.setIcon(self.close_right_icon)
         # self.hiding_profile_right_pushButton.setIconSize(QSize(32, 32))
         self.settings_pushButton.clicked.connect(self.settings_profile)
@@ -170,8 +172,11 @@ class Interface(QMainWindow): #Интерфейс
         self.volume_icon_label.setPixmap(self.volume_up_icon)
         self.start_program()
         global volume_value
+        global micro_value
         volume_value = self.valuts_volums_verticalSlider.value()
+        micro_value = self.valuts_vol_micro_verticalSlider.value() / 100
         self.valuts_volums_verticalSlider.valueChanged.connect(self.update_volume_value)
+        self.valuts_vol_micro_verticalSlider.valueChanged.connect(self.update_volume_value)
         self.update_sound_table()
         self.stop_pushButton.clicked.connect(self.stop_valve_sound)
         self.help_pushButton.clicked.connect(self.help)
@@ -199,6 +204,8 @@ class Interface(QMainWindow): #Интерфейс
         self.pushButton_back.clicked.connect(self.back_go_ai_studio)
         self.ai = AI_Studio()
         self.pushButton_generated.clicked.connect(self.ai_start_generate)
+        self.vol_micro_icon_label.setPixmap(self.micro_icon)
+        self.valuts_vol_micro_lineEdit.setReadOnly(True)
         self.setFixedSize(862, 672)
 
         self.disable_editing(self.tableWidget)
@@ -262,7 +269,10 @@ class Interface(QMainWindow): #Интерфейс
 
     def update_volume_value(self):
         global volume_value
+        global micro_value
         volume_value = self.valuts_volums_verticalSlider.value()
+        micro_value = self.valuts_vol_micro_verticalSlider.value() / 100
+        self.valuts_vol_micro_lineEdit.setText(str(self.valuts_vol_micro_verticalSlider.value()) + "%")
 
     def stop_valve_sound(self):
         global res_volume_value
@@ -736,8 +746,9 @@ class MicrofonOutput:
 
 
     def callback_input(self, in_data, frame_count, time_info, status):
+        global micro_value
         audio_data = np.frombuffer(in_data, dtype=np.int16)
-        audio_data = (audio_data * 1).astype(np.int16)
+        audio_data = (audio_data * micro_value).astype(np.int16)
         return (audio_data, pyaudio.paContinue)
 
     def start_microphon(self):
