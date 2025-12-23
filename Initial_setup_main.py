@@ -64,6 +64,7 @@ class Stage1SitingsMicrofon(QMainWindow):
         with open('./mainWindows/date/settings_app.txt', 'w', newline='', encoding="utf8") as f:
             print(self.list_devices_comboBox.currentText(), file=f)
             print('99', file=f)
+            print('250', file=f)
         Stage2 = WaitStage()
         widget.addWidget(Stage2)
         widget.setCurrentIndex(2)

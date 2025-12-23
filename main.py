@@ -206,6 +206,7 @@ class Interface(QMainWindow): #Интерфейс
         self.pushButton_generated.clicked.connect(self.ai_start_generate)
         self.vol_micro_icon_label.setPixmap(self.micro_icon)
         self.valuts_vol_micro_lineEdit.setReadOnly(True)
+        self.update_settings()
         self.setFixedSize(862, 672)
 
         self.disable_editing(self.tableWidget)
@@ -227,6 +228,7 @@ class Interface(QMainWindow): #Интерфейс
         et.show()
         et.exec()
         self.update_profile_tabel()
+        self.update_settings()
 
     def start_program(self):
         try:
@@ -430,6 +432,11 @@ class Interface(QMainWindow): #Интерфейс
         et.exec()
         self.update_sound_table()
 
+    def update_settings(self):
+        with open('./mainWindows/date/settings_app.txt', 'r', encoding="utf8") as f:
+            read_l = f.readlines()
+            limit_volume_micro = int(read_l[2][:-1])
+        self.valuts_vol_micro_verticalSlider.setMaximum(limit_volume_micro)
 
     def help(self):
         webbrowser.open('https://github.com/Roman4404/spanel/wiki')
@@ -438,9 +445,11 @@ class Interface(QMainWindow): #Интерфейс
         with open('./mainWindows/date/settings_app.txt', 'r', encoding="utf8") as f:
             read_l = f.readlines()
             device = read_l[0][:-1]
+            max_vol_for_micro = read_l[2][:-1]
         with open('./mainWindows/date/settings_app.txt', 'w', newline='', encoding="utf8") as f:
             print(device, file=f)
             print(self.valuts_volums_verticalSlider.value(), file=f)
+            print(max_vol_for_micro, file=f)
         event.accept()
 
 
@@ -597,16 +606,22 @@ def index_inp_system():
 class SettingsProfile(QDialog):
     def __init__(self):
         super().__init__()
-        uic.loadUi('./mainWindows/Interface/profile_settings.ui', self)
+        uic.loadUi('./mainWindows/Interface/window_with_settings.ui', self)
         self.update_profile_tabel()
-        self.ok_pushButton.clicked.connect(self.close_window)
+        self.ok_pushButton.clicked.connect(self.save_close_window)
+        self.cancel_pushButton.clicked.connect(self.close_window)
         self.profile_listWidget.itemClicked.connect(self.click_profile)
         self.edit_name_pushButton.setEnabled(False)
         self.del_pushButton.setEnabled(False)
         self.edit_name_pushButton.clicked.connect(self.edit_name_profile)
         self.add_button.clicked.connect(self.add_profile)
         self.del_pushButton.clicked.connect(self.del_profile)
-        self.setWindowTitle('Настройки профелей')
+        self.setWindowTitle('Настройки')
+        with open('./mainWindows/date/settings_app.txt', 'r', encoding="utf8") as f:
+            read_l = f.readlines()
+            mlvm_inp = int(read_l[2][:-1])
+        self.max_vol_for_micro_spinBox.setValue(mlvm_inp)
+        self.max_limit_vol_micro = mlvm_inp
 
     def update_profile_tabel(self):
         self.profile_listWidget.clear()
@@ -685,6 +700,18 @@ class SettingsProfile(QDialog):
         cur.execute(f'''DROP TABLE {name_table}''')
         self.click_profile_label.setText('')
         self.update_profile_tabel()
+
+    def save_close_window(self):
+        with open('./mainWindows/date/settings_app.txt', 'r', encoding="utf8") as f:
+            read_l = f.readlines()
+            device = read_l[0][:-1]
+            valuts_volums = read_l[1][:-1]
+        with open('./mainWindows/date/settings_app.txt', 'w', newline='', encoding="utf8") as f:
+            print(device, file=f)
+            print(valuts_volums, file=f)
+            print(self.max_vol_for_micro_spinBox.value(), file=f)
+
+        self.close()
 
     def close_window(self):
         self.close()
