@@ -448,16 +448,18 @@ class Interface(QMainWindow): #Интерфейс
             read_l = f.readlines()
             device = read_l[0][:-1]
             max_vol_for_micro = read_l[2][:-1]
+        a_vvv = self.valuts_volums_verticalSlider.value()
+        b_mvfm = max_vol_for_micro
         with open('./mainWindows/date/settings_app.txt', 'w', newline='', encoding="utf8") as f:
             print(device, file=f)
-            if not self.valuts_volums_verticalSlider.value():
+            if self.valuts_volums_verticalSlider.value() == '':
                 print('99', file=f)
             else:
-                print(self.valuts_volums_verticalSlider.value(), file=f)
-            if not max_vol_for_micro:
+                print(a_vvv, file=f)
+            if max_vol_for_micro == '':
                 print('100', file=f)
             else:
-                print(max_vol_for_micro, file=f)
+                print(b_mvfm, file=f)
         event.accept()
 
 
