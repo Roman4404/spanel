@@ -238,9 +238,11 @@ class Interface(QMainWindow): #Интерфейс
                 self.valuts_volums_verticalSlider.setValue(volume_value)
             self.update_hot_key()
         except FileNotFoundError:
-            et = Tech_Windows()
-            et.show()
-            et.exec()
+            if os.path.isdir('./mainWindows/date'):
+                et = Tech_Windows()
+                et.show()
+                et.exec()
+            subprocess.run(['./Initial_setup_main.exe'])
             self.close()
 
     def update_hot_key(self):

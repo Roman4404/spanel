@@ -49,7 +49,7 @@
     </font>
    </property>
    <property name="text">
-    <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;При загрузки возникла ошибка рекомендем &lt;/p&gt;&lt;p&gt;преустановить программу &lt;/p&gt;&lt;p&gt;Запустите Initial_setup_main.py&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+    <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;При загрузки возникла ошибка рекомендем &lt;/p&gt;&lt;p&gt;преустановить программу &lt;/p&gt;&lt;p&gt;Сейчас запустится установщик&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
    </property>
    <property name="alignment">
     <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignTop</set>
