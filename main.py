@@ -131,7 +131,7 @@ class Interface(QMainWindow): #Интерфейс
                 './mainWindows/date/settings_app.txt') or not os.path.isfile('./mainWindows/date/busy_hot_key.txt'):
             self.start_program()
         uic.loadUi("./mainWindows/Interface/New_base.ui", self)
-        self.setWindowTitle('SPanel 0.3(Alpha)')
+        self.setWindowTitle('SPanel 0.4(Alpha)')
         try:
             with open('./mainWindows/date/settings_profile.txt', 'r', encoding="utf8") as f:
                 read_l = f.readlines()
