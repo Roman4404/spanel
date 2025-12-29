@@ -1,5 +1,3 @@
-![spanel](example/SPanel_cover.png)
-
 # Spanel
 <div align=center>
  	<img alt="downloader_icon" src="example/word_welcome_v2.png">
