@@ -3,7 +3,7 @@
  	<img alt="downloader_icon" src="example/word_welcome_v2.png">
 </div>
 
-## [Cкачать exe файл📝](https://github.com/Roman4404/spanel/wiki/Download)
+## [Cкачать exe файл📝](https://github.com/Roman4404/spanel/releases/download/v0.4-alpha/spanel_setup.exe)
 Автор идеи: https://github.com/Roman4404
 Описание: SPanel - это приложение, которое дает вам  воспроизведение аудио в голосовых чатах (используется цифровое преобразование) с помощью вашего микрофона.
 Цель и задачи: Разнообразить общение в голосовых чатах и стримов. Для музыкантов и диджеев воспроизведение заранее заготовленных аудио.
